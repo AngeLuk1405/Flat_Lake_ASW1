@@ -3,6 +3,7 @@ def main():
 
 """Schlauer Kommentar"""
 """Nicht so schlauer Kommentar"""
+'''Allerschlauster Kommentar'''
 
 if __name__ == "__main__":
     main()
