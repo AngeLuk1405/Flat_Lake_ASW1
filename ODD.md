@@ -106,7 +106,8 @@ Es werden keine expliziten Gruppen oder Kollektive modelliert.
 Fisch-Patches:
 Jede Zelle erhält eine initiale Biomasse mit Streuung um einen Mittelwert,
 dieser kann homogen oder räumlich heterogen (z.B. höher in der Mitte des Sees) verteilt sein.
-Die Wachstumsrate r ist für alle Patches identisch
+Die Wachstumsrate r ist für alle Patches identisch.\
+\
 Fischer:
 - Fischer werden zufällig auf dem Gitter platziert (Mehrfachbelegung erlaubt)
 - Strategien werden zugewiesen
