@@ -60,9 +60,6 @@ def initialize():
     return grid, fishers
 
 
-
-# Diffusion function does not work yet:
-
 # def diffuse(grid):
 #     """ Diffuses biomass between neighboring patches using a diffusion coefficient."""
 #     for y in range(LENGTH):
@@ -85,6 +82,11 @@ def initialize():
 
 #             biomass = patch.biomass + DIFFUSION_COEFFICIENT * (mean_neighbor_biomass - patch.biomass)
 
+
+#########
+# Diffusion: entweder KI fragen oder: Nachbarzellen Druchschnitt, speichern als Variable in Tick-1
+# im nächsten Schritt Biomass = Biomass von davor, danach erst Wachstum 
+#########
 
 
 # Step function simulates one time step of the model. Biomass grows, fishers catch fish.
@@ -111,14 +113,18 @@ def step(grid, fishers):
         elif fisher.strategy == "imitator":
             # Placeholder for imitator strategy, currently like egoist:
             fisher.catch = patch.biomass
+
+            #########
+            # Fischer mit höchster Total Catch finden, diese Strategie übernehmen
+            #########
+
+            #########
+            # Sanktionierer überhaupt mal machen
+            #########
         
         fisher.catch = min(fisher.catch, patch.biomass) # Catch cannot be more than the available biomass
         fisher.total_catch += fisher.catch
         patch.biomass -= fisher.catch
-
-
-            
-
 
 
 
@@ -144,3 +150,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+#########
+#Visualisierung: ganz mit KI  
+#########
