@@ -10,6 +10,7 @@ GROWTH_RATE = 0.3 # Growth rate of biomass in each patch
 STRATEGIES = ["egoist", "imitator", "cooperator", "sanctioner"]
 DIFFUSION_COEFFICIENT = 0.1 # Coefficient for diffusion of biomass between patches
 SIMULATION_STEPS = 100
+SIGHT_RADIUS = 69####
 
 @dataclass
 class Patch:
@@ -53,12 +54,17 @@ def initialize():
     for i in range(NUM_FISHERS):
         x = random.randint(0, WIDTH - 1)
         y = random.randint(0, LENGTH - 1)
-        strategy = random.choice(STRATEGIES)
+        strategy = random.choice(STRATEGIES)  ####Evtl nicht random sondern bestimmte Anteile
         fisher = Fisher(x_position=x, y_position=y, strategy=strategy)
         fishers.append(fisher)
         
     return grid, fishers
 
+
+#######
+#Sichtradius machen, mit Variable ganz oben als Sichtweite
+#Ziel: Liste an Fischern in Umgebung, alle außer Egoisten brauchn Zugriff darauf 
+#######
 
 # def diffuse(grid):
 #     """ Diffuses biomass between neighboring patches using a diffusion coefficient."""
@@ -84,7 +90,7 @@ def initialize():
 
 
 #########
-# Diffusion: entweder KI fragen oder: Nachbarzellen Druchschnitt, speichern als Variable in Tick-1
+# Diffusion: Nachbarzellen Druchschnitt, speichern als Variable in Tick-1
 # im nächsten Schritt Biomass = Biomass von davor, danach erst Wachstum 
 #########
 
@@ -92,12 +98,16 @@ def initialize():
 # Step function simulates one time step of the model. Biomass grows, fishers catch fish.
 # Imitator strategy, sanctioner strategy, and diffusion are yet to be implemented!
 # For now imitators behave like egoists and sanctioners like cooperators.
+
 def step(grid, fishers):
     """Advances the simulation by one step, updating biomass, fishing, sanctions
     and strategies."""
     # Update the biomass of each patch:
     for row in grid:
         for patch in row:
+            #####
+            #Biomasse für Wert von Tick-1 übernehmen, dann erst growen
+            #####
             patch.grow()
     
     for fisher in fishers:
@@ -109,22 +119,34 @@ def step(grid, fishers):
         elif fisher.strategy in ["cooperator", "sanctioner"]:
             # Cooperators and sanctioners catch as much as the growth of the patch:
             fisher.catch = patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
+
+            #######
+            #Grenzwert für zu viele Egoistens (am besten auch ganz oben), Abh davon ob er Koopierier oder Egoist ist 
+            #######
         
         elif fisher.strategy == "imitator":
             # Placeholder for imitator strategy, currently like egoist:
             fisher.catch = patch.biomass
 
             #########
-            # Fischer mit höchster Total Catch finden, diese Strategie übernehmen
+            # Fischer mit höchster Total Catch im Sichtradius finden, diese Strategie übernehmen
             #########
 
             #########
-            # Sanktionierer überhaupt mal machen
+            # Sanktionierer: wenn Fischer im Sichtradius Egoisten sind -> STRAFE
+            # Strafe auf alle verteilt oder auf die Kooperierer verteilt
             #########
         
         fisher.catch = min(fisher.catch, patch.biomass) # Catch cannot be more than the available biomass
         fisher.total_catch += fisher.catch
         patch.biomass -= fisher.catch
+
+        ######
+        #Fischer bewegen sich in zufällige Richtung (in x und y, random.choice([-1, 0, 1])),
+        #sicherstellen dass sie nicht aus dem Grid rauskommen
+        #sicherstellen, dass sich nicht auf ein besetzten Feld fahren
+        #evtl Schleife mit Abbruch sobald er ein passendes Feld gefunden hat
+        ######
 
 
 
@@ -151,6 +173,10 @@ def main():
 if __name__ == "__main__":
     main()
 
-#########
+########
 #Visualisierung: ganz mit KI  
-#########
+#Feld von See, am besten animiert
+#Farben für Biomasse, Fischer als farbiger Punkt für Strategie, mit Legende
+#Diagramme: Biomasse über Zeit, Total Catch (in Abh. der Strategien evtl. mit Imitator) über Zeit
+#Anzahl der Strategien über Zeit
+########
