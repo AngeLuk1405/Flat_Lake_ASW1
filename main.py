@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import random
+import math
 
 # Constants:
 WIDTH = 20 # Width of the lake grid
@@ -10,7 +11,9 @@ GROWTH_RATE = 0.3 # Growth rate of biomass in each patch
 STRATEGIES = ["egoist", "imitator", "cooperator", "sanctioner"]
 DIFFUSION_COEFFICIENT = 0.1 # Coefficient for diffusion of biomass between patches
 SIMULATION_STEPS = 100
-SIGHT_RADIUS = 69####
+SIGHT_RADIUS = 3 # Radius within which fishers can see and interact with other fishers
+COOPERATION_THRESHOLD = 50 # Minimal percentage of cooperators or sanctioners in sight for cooperators to cooperate
+
 
 @dataclass
 class Patch:
@@ -31,6 +34,7 @@ class Fisher:
     x_position: int
     y_position: int
     strategy: str
+    current_strategy: str
     catch: float = 0.0
     total_catch: float = 0.0
     sanction_cost: float = 0.0
@@ -55,17 +59,39 @@ def initialize():
         x = random.randint(0, WIDTH - 1)
         y = random.randint(0, LENGTH - 1)
         strategy = random.choice(STRATEGIES)  ####Evtl nicht random sondern bestimmte Anteile
-        fisher = Fisher(x_position=x, y_position=y, strategy=strategy)
+        if strategy == "imitator":
+            current_strategy = "egoist" # Imitators start as egoists but can change their strategy later
+        else:
+            current_strategy = strategy
+        fisher = Fisher(x_position=x, y_position=y, strategy=strategy, current_strategy=current_strategy)
         fishers.append(fisher)
         
     return grid, fishers
 
 
-#######
-#Sichtradius machen, mit Variable ganz oben als Sichtweite
-#Ziel: Liste an Fischern in Umgebung, alle außer Egoisten brauchn Zugriff darauf 
-#######
+# Get a list of neighboring fishers within the sight radius of a given fisher:
+def get_neighbors(fisher, fishers):
+    """Returns a list of neighboring fishers within the sight radius"""
+    neighbors = []
+    for other in fishers:
+        if other is fisher:
+            continue
+        distance = math.sqrt(((fisher.x_position - other.x_position) ** 2 ) 
+                             + ((fisher.y_position - other.y_position) ** 2)) # compute distance between fishers
+        if distance <= SIGHT_RADIUS:
+            neighbors.append(other)
+    return neighbors
 
+# Helper function to see if a fisher is cooperative (cooperator or sanctioner):
+def is_cooperative(fisher):
+    """Returns True if the fisher is cooperative, False if not cooperative."""
+    if fisher.strategy in ["cooperator", "sanctioner"]:
+        return True
+    elif fisher.strategy == "imitator":
+        return fisher.current_strategy in ["cooperator", "sanctioner"]
+    else:
+        return False
+    
 # def diffuse(grid):
 #     """ Diffuses biomass between neighboring patches using a diffusion coefficient."""
 #     for y in range(LENGTH):
@@ -116,17 +142,44 @@ def step(grid, fishers):
             # Egoists catch as much as possible from their current patch:
             fisher.catch = patch.biomass
         
-        elif fisher.strategy in ["cooperator", "sanctioner"]:
-            # Cooperators and sanctioners catch as much as the growth of the patch:
-            fisher.catch = patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
+        elif fisher.strategy == "cooperator":
+            # Cooperators cooperate if ther are not too many egoists in the sight radius.
+            # Else they behave like egoists.
+            # When there are no neighbors, they also cooperate.
+            neighbors = get_neighbors(fisher, fishers)
+            number_cooperative =sum(1 for neighbor in neighbors if is_cooperative(neighbor))
 
-            #######
-            #Grenzwert für zu viele Egoistens (am besten auch ganz oben), Abh davon ob er Koopierier oder Egoist ist 
-            #######
+            if len(neighbors) == 0:
+                # If there are no neighbors, cooperators cooperate:
+                    fisher.catch = patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
+            else:
+                if (number_cooperative / len(neighbors)) * 100 > COOPERATION_THRESHOLD:
+                    # Cooperation means catching as much as the growth of the patch:
+                    fisher.catch = patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
+                    
+                else:
+                    # If too many egiosts are around, cooperators behave like egoists:
+                    fisher.catch = patch.biomass
+
         
         elif fisher.strategy == "imitator":
-            # Placeholder for imitator strategy, currently like egoist:
-            fisher.catch = patch.biomass
+            neighbors = get_neighbors(fisher, fishers)
+            best_neighbor = None
+            best_total_catch = fisher.total_catch
+
+            if len(neighbors) != 0:
+                for neighbor in neighbors:
+                    if neighbor.total_catch > best_total_catch:
+                        best_neighbor = neighbor
+                        best_total_catch = best_neighbor.total_catch     
+                if best_neighbor is not None:
+                    fisher.current_strategy = best_neighbor.strategy
+
+            if fisher.current_strategy == "egoist":
+                fisher.catch = patch.biomass
+
+            elif fisher.current_strategy in ["cooperator", "sanctioner"]:
+                fisher.catch = patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
 
             #########
             # Fischer mit höchster Total Catch im Sichtradius finden, diese Strategie übernehmen
@@ -140,6 +193,7 @@ def step(grid, fishers):
         fisher.catch = min(fisher.catch, patch.biomass) # Catch cannot be more than the available biomass
         fisher.total_catch += fisher.catch
         patch.biomass -= fisher.catch
+        patch.biomass = max(0.0, patch.biomass) # Biomass cannot be negative
 
         ######
         #Fischer bewegen sich in zufällige Richtung (in x und y, random.choice([-1, 0, 1])),
