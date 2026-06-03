@@ -39,6 +39,62 @@ class Fisher:
     total_catch: float = 0.0
     sanction_cost: float = 0.0
 
+    # Fisher catches fish from current patch based on their strategy:
+    def catch_fish(self, patch, neighbors):
+        """Fisher catches fish from the current patch based on their strategy and neighbors."""
+        
+        # Egoist:
+        if self.strategy == "egoist":
+            # Egoists catch as much as possible from their current patch:
+            self.catch = patch.biomass
+        
+        #Cooperator:
+        elif self.strategy == "cooperator":
+            # Cooperators cooperate if ther are not too many egoists in the sight radius.
+            # Else they behave like egoists.
+            # When there are no neighbors, they also cooperate.
+            number_cooperative =sum(1 for neighbor in neighbors if is_cooperative(neighbor))
+
+            if len(neighbors) == 0:
+                # If there are no neighbors, cooperators cooperate:
+                    self.catch = patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
+            else:
+                if (number_cooperative / len(neighbors)) * 100 > COOPERATION_THRESHOLD:
+                    # Cooperation means catching as much as the growth of the patch:
+                    self.catch = patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
+                    
+                else:
+                    # If too many egiosts are around, cooperators behave like egoists:
+                    self.catch = patch.biomass
+        
+        # Imitator:
+        elif self.strategy == "imitator":
+            best_neighbor = None
+            best_total_catch = self.total_catch
+
+            if len(neighbors) != 0:
+                for neighbor in neighbors:
+                    if neighbor.total_catch > best_total_catch:
+                        best_neighbor = neighbor
+                        best_total_catch = best_neighbor.total_catch     
+                if best_neighbor is not None:
+                    self.current_strategy = best_neighbor.strategy
+
+            if self.current_strategy == "egoist":
+                self.catch = patch.biomass
+
+            elif self.current_strategy in ["cooperator", "sanctioner"]:
+                self.catch = patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
+
+        #Sanctioner:
+        elif self.strategy == "sanctioner":
+            self.catch = patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
+        #########
+        # Sanktionierer: wenn Fischer im Sichtradius Egoisten sind -> STRAFE
+        # Strafe auf alle verteilt oder auf die Kooperierer verteilt
+        #########
+
+
 
 # Initialization function to set up the lake-grid and the fishers:
 def initialize():
@@ -122,9 +178,8 @@ def is_cooperative(fisher):
 
 
 # Step function simulates one time step of the model. Biomass grows, fishers catch fish.
-# Imitator strategy, sanctioner strategy, and diffusion are yet to be implemented!
+# Sanktioner strategy, and diffusion are yet to be implemented!
 # For now imitators behave like egoists and sanctioners like cooperators.
-
 def step(grid, fishers):
     """Advances the simulation by one step, updating biomass, fishing, sanctions
     and strategies."""
@@ -136,59 +191,11 @@ def step(grid, fishers):
             #####
             patch.grow()
     
+    # Each fisher catches fish from current patch:
     for fisher in fishers:
         patch = grid[fisher.y_position][fisher.x_position]
-        if fisher.strategy == "egoist":
-            # Egoists catch as much as possible from their current patch:
-            fisher.catch = patch.biomass
-        
-        elif fisher.strategy == "cooperator":
-            # Cooperators cooperate if ther are not too many egoists in the sight radius.
-            # Else they behave like egoists.
-            # When there are no neighbors, they also cooperate.
-            neighbors = get_neighbors(fisher, fishers)
-            number_cooperative =sum(1 for neighbor in neighbors if is_cooperative(neighbor))
-
-            if len(neighbors) == 0:
-                # If there are no neighbors, cooperators cooperate:
-                    fisher.catch = patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
-            else:
-                if (number_cooperative / len(neighbors)) * 100 > COOPERATION_THRESHOLD:
-                    # Cooperation means catching as much as the growth of the patch:
-                    fisher.catch = patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
-                    
-                else:
-                    # If too many egiosts are around, cooperators behave like egoists:
-                    fisher.catch = patch.biomass
-
-        
-        elif fisher.strategy == "imitator":
-            neighbors = get_neighbors(fisher, fishers)
-            best_neighbor = None
-            best_total_catch = fisher.total_catch
-
-            if len(neighbors) != 0:
-                for neighbor in neighbors:
-                    if neighbor.total_catch > best_total_catch:
-                        best_neighbor = neighbor
-                        best_total_catch = best_neighbor.total_catch     
-                if best_neighbor is not None:
-                    fisher.current_strategy = best_neighbor.strategy
-
-            if fisher.current_strategy == "egoist":
-                fisher.catch = patch.biomass
-
-            elif fisher.current_strategy in ["cooperator", "sanctioner"]:
-                fisher.catch = patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
-
-            #########
-            # Fischer mit höchster Total Catch im Sichtradius finden, diese Strategie übernehmen
-            #########
-
-            #########
-            # Sanktionierer: wenn Fischer im Sichtradius Egoisten sind -> STRAFE
-            # Strafe auf alle verteilt oder auf die Kooperierer verteilt
-            #########
+        neighbors = get_neighbors(fisher, fishers)
+        fisher.catch_fish(patch, neighbors)
         
         fisher.catch = min(fisher.catch, patch.biomass) # Catch cannot be more than the available biomass
         fisher.total_catch += fisher.catch
