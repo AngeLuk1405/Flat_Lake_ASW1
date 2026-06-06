@@ -3,8 +3,8 @@ import random
 import math
 
 # Constants:
-WIDTH = 20 # Width of the lake grid
-LENGTH = 20 # Length of the lake grid
+WIDTH = 20 # Width of the lake grid (x-axis)
+LENGTH = 20 # Length of the lake grid (y-axis)
 NUM_FISHERS = 10 # Number of fisher-agents in the simulation
 CAPACITY = 100.0 # Carrying capacity of biomass in each lake-patch
 GROWTH_RATE = 0.3 # Growth rate of biomass in each patch
@@ -78,7 +78,7 @@ class Fisher:
                         best_neighbor = neighbor
                         best_total_catch = best_neighbor.total_catch     
                 if best_neighbor is not None:
-                    self.current_strategy = best_neighbor.strategy
+                    self.current_strategy = best_neighbor.current_strategy
 
             if self.current_strategy == "egoist":
                 self.catch = patch.biomass
@@ -93,6 +93,21 @@ class Fisher:
         # Sanktionierer: wenn Fischer im Sichtradius Egoisten sind -> STRAFE
         # Strafe auf alle verteilt oder auf die Kooperierer verteilt
         #########
+
+    def move(self, fishers):
+        """Moves the fisher to a random neighboring patch, that is not occupied by another fisher."""
+        for _ in range(10): # Try max. 10 times to find a free patch, else stay
+            # Moves to a random patch in Moore neighborhood or stay in place
+            dx = random.choice([-1,0,1])
+            dy = random.choice([-1,0,1])
+            new_x = max(0, min(WIDTH - 1, self.x_position + dx))
+            new_y = max(0, min(LENGTH - 1, self.y_position + dy))
+
+            # Check if the new patch is already occupied:
+            if not any(fisher.x_position == new_x and fisher.y_position == new_y for fisher in fishers):
+                self.x_position = new_x
+                self.y_position = new_y
+                break
 
 
 
@@ -201,6 +216,11 @@ def step(grid, fishers):
         fisher.total_catch += fisher.catch
         patch.biomass -= fisher.catch
         patch.biomass = max(0.0, patch.biomass) # Biomass cannot be negative
+
+    # After all fishers have caught fish, they move to a new patch:
+    for fisher in fishers:
+        fisher.move(fishers)
+
 
         ######
         #Fischer bewegen sich in zufällige Richtung (in x und y, random.choice([-1, 0, 1])),
