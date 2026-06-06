@@ -30,7 +30,7 @@ class Patch:
 
 @dataclass
 class Fisher:
-    """Fishers are the agents that interact with eachother and the patches by catching fish."""
+    """Fishers are the agents that interact with each other and the patches by catching fish."""
     x_position: int
     y_position: int
     strategy: str
@@ -42,7 +42,8 @@ class Fisher:
     # Fisher catches fish from current patch based on their strategy:
     def catch_fish(self, patch, neighbors):
         """Fisher catches fish from the current patch based on their strategy and neighbors."""
-        
+        self.catch = 0.0 # Reset catch before calculating new catch based on strategy
+
         # Egoist:
         if self.strategy == "egoist":
             # Egoists catch as much as possible from their current patch:
@@ -50,7 +51,7 @@ class Fisher:
         
         #Cooperator:
         elif self.strategy == "cooperator":
-            # Cooperators cooperate if ther are not too many egoists in the sight radius.
+            # Cooperators cooperate if there are not too many egoists in the sight radius.
             # Else they behave like egoists.
             # When there are no neighbors, they also cooperate.
             number_cooperative =sum(1 for neighbor in neighbors if is_cooperative(neighbor))
@@ -64,7 +65,7 @@ class Fisher:
                     self.catch = patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
                     
                 else:
-                    # If too many egiosts are around, cooperators behave like egoists:
+                    # If too many egoists are around, cooperators behave like egoists:
                     self.catch = patch.biomass
         
         # Imitator:
@@ -104,7 +105,7 @@ class Fisher:
             new_y = max(0, min(LENGTH - 1, self.y_position + dy))
 
             # Check if the new patch is already occupied:
-            if not any(fisher.x_position == new_x and fisher.y_position == new_y for fisher in fishers):
+            if not any(other.x_position == new_x and other.y_position == new_y for other in fishers if other is not self):
                 self.x_position = new_x
                 self.y_position = new_y
                 break
@@ -136,7 +137,10 @@ def initialize():
             current_strategy = strategy
         fisher = Fisher(x_position=x, y_position=y, strategy=strategy, current_strategy=current_strategy)
         fishers.append(fisher)
-        
+    
+    for fisher in fishers:
+        fisher.move(fishers) # Move fishers to ensure they don't start on the same patch
+
     return grid, fishers
 
 
@@ -169,7 +173,7 @@ def is_cooperative(fisher):
 #         for x in range(WIDTH):
 #             patch = grid[y][x]
 
-#             # Get moore-neighbors:
+#             # Get Moore neighbors:
 #             neighbors = []
 #             for dx in range (-1, 2):
 #                 for dy in range (-1, 2):
@@ -193,7 +197,7 @@ def is_cooperative(fisher):
 
 
 # Step function simulates one time step of the model. Biomass grows, fishers catch fish.
-# Sanktioner strategy, and diffusion are yet to be implemented!
+# Sanctioner strategy, and diffusion are yet to be implemented!
 # For now imitators behave like egoists and sanctioners like cooperators.
 def step(grid, fishers):
     """Advances the simulation by one step, updating biomass, fishing, sanctions
@@ -221,13 +225,6 @@ def step(grid, fishers):
     for fisher in fishers:
         fisher.move(fishers)
 
-
-        ######
-        #Fischer bewegen sich in zufällige Richtung (in x und y, random.choice([-1, 0, 1])),
-        #sicherstellen dass sie nicht aus dem Grid rauskommen
-        #sicherstellen, dass sich nicht auf ein besetzten Feld fahren
-        #evtl Schleife mit Abbruch sobald er ein passendes Feld gefunden hat
-        ######
 
 
 
