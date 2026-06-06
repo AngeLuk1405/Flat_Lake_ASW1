@@ -13,7 +13,9 @@ DIFFUSION_COEFFICIENT = 0.1 # Coefficient for diffusion of biomass between patch
 SIMULATION_STEPS = 100
 SIGHT_RADIUS = 3 # Radius within which fishers can see and interact with other fishers
 COOPERATION_THRESHOLD = 50 # Minimal percentage of cooperators or sanctioners in sight for cooperators to cooperate
-
+SANCTION_COST = 10
+PUNISHER_COST = 2
+SANCTION_THRESHOLD = 1.2
 
 @dataclass
 class Patch:
@@ -38,7 +40,8 @@ class Fisher:
     catch: float = 0.0
     total_catch: float = 0.0
     sanction_cost: float = 0.0
-
+    reputation: float = 0.0
+    
     # Fisher catches fish from current patch based on their strategy:
     def catch_fish(self, patch, neighbors):
         """Fisher catches fish from the current patch based on their strategy and neighbors."""
@@ -166,7 +169,29 @@ def is_cooperative(fisher):
         return fisher.current_strategy in ["cooperator", "sanctioner"]
     else:
         return False
-    
+        
+def apply_sanctions(fishers):
+
+    sustainable_catch = GROWTH_RATE * CAPACITY * 0.5
+
+    for sanctioner in fishers:
+
+        if sanctioner.strategy != "sanctioner":
+            continue
+
+        neighbors = get_neighbors(sanctioner, fishers)
+
+        for neighbor in neighbors:
+
+            if neighbor.catch > SANCTION_THRESHOLD * sustainable_catch:
+
+                neighbor.total_catch -= SANCTION_COST
+                neighbor.reputation -= 1
+
+                sanctioner.total_catch -= PUNISHER_COST
+                sanctioner.sanction_cost += PUNISHER_COST
+                sanctioner.reputation += 0.2
+                
 # def diffuse(grid):
 #     """ Diffuses biomass between neighboring patches using a diffusion coefficient."""
 #     for y in range(LENGTH):
@@ -220,7 +245,8 @@ def step(grid, fishers):
         fisher.total_catch += fisher.catch
         patch.biomass -= fisher.catch
         patch.biomass = max(0.0, patch.biomass) # Biomass cannot be negative
-
+        apply_sanctions(fishers)
+        
     # After all fishers have caught fish, they move to a new patch:
     for fisher in fishers:
         fisher.move(fishers)
