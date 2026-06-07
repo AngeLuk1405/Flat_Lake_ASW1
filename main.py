@@ -14,7 +14,7 @@ SIMULATION_STEPS = 100
 SIGHT_RADIUS = 3 # Radius within which fishers can see and interact with other fishers
 COOPERATION_THRESHOLD = 50 # Minimal percentage of cooperators or sanctioners in sight for cooperators to cooperate
 SANCTION_COST = 10
-PUNISHER_COST = 2
+PUNISHER_COST = 0.2
 SANCTION_THRESHOLD = 1.2
 
 @dataclass
@@ -185,9 +185,9 @@ def apply_sanctions(fishers):
 
             if neighbor.catch > SANCTION_THRESHOLD * sustainable_catch:
 
-                neighbor.total_catch -= SANCTION_COST
+                neighbor.total_catch -= SANCTION_COST #Kosten für regelbruch
                 neighbor.reputation -= 1
-
+#kosten für die durchführung der sanktion
                 sanctioner.total_catch -= PUNISHER_COST
                 sanctioner.sanction_cost += PUNISHER_COST
                 sanctioner.reputation += 0.2
@@ -245,7 +245,8 @@ def step(grid, fishers):
         fisher.total_catch += fisher.catch
         patch.biomass -= fisher.catch
         patch.biomass = max(0.0, patch.biomass) # Biomass cannot be negative
-        apply_sanctions(fishers)
+       
+    apply_sanctions(fishers)
         
     # After all fishers have caught fish, they move to a new patch:
     for fisher in fishers:
@@ -257,13 +258,16 @@ def step(grid, fishers):
 def main():
     print("Hello from flat-lake!")
     grid, fishers = initialize()
-
+    for fisher in fishers:
+        print(fisher.strategy)
+        
     # Test: Print initial biomass of patch (0,0) and total catch and strategy of fisher 0:
     print(f'Intitial biomass of patch (0,0): {grid[0][0].biomass}')
     print(f'Strategy of fisher 0: {fishers[0].strategy}')
     print(f'Initial total catch of fisher 0: {fishers[0].total_catch}')
 
-    step(grid, fishers)
+    for i in range(20):
+        step(grid, fishers)
 
     # Test: Print biomass of patch (0,0) and total catch of fisher 0 after one step:
     print(f'Biomass of patch (0,0) after one step: {grid[0][0].biomass}')
