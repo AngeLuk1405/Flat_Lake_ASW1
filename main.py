@@ -108,18 +108,34 @@ class Fisher:
 
     def move(self, fishers):
         """Moves the fisher to a random neighboring patch, that is not occupied by another fisher."""
-        for _ in range(10): # Try max. 10 times to find a free patch, else stay
-            # Moves to a random patch in Moore neighborhood or stay in place
-            dx = random.choice([-1,0,1])
-            dy = random.choice([-1,0,1])
-            new_x = max(0, min(WIDTH - 1, self.x_position + dx))
-            new_y = max(0, min(LENGTH - 1, self.y_position + dy))
+        # for _ in range(10): # Try max. 10 times to find a free patch, else stay
+        #     # Moves to a random patch in Moore neighborhood or stay in place
+        #     dx = random.choice([-1,0,1])
+        #     dy = random.choice([-1,0,1])
+        #     new_x = max(0, min(WIDTH - 1, self.x_position + dx))
+        #     new_y = max(0, min(LENGTH - 1, self.y_position + dy))
 
-            # Check if the new patch is already occupied:
-            if not any(other.x_position == new_x and other.y_position == new_y for other in fishers if other is not self):
-                self.x_position = new_x
-                self.y_position = new_y
-                break
+        #     # Check if the new patch is already occupied:
+        #     if not any(other.x_position == new_x and other.y_position == new_y for other in fishers if other is not self):
+        #         self.x_position = new_x
+        #         self.y_position = new_y
+        #         break
+
+        # Alternative: Always move to a random neighbouring patch (without 10 tries)
+        occupied = {(f.x_position, f.y_position) for f in fishers if f is not self}
+
+        candidates = [
+            (max(0, min(WIDTH - 1, self.x_position + dx)),
+             max(0, min(LENGTH - 1, self.y_position + dy)))
+            for dx in [-1, 0, 1]
+            for dy in [-1, 0, 1]
+            if (dx, dy) != (0, 0)
+        ]
+
+        free = [pos for pos in candidates if pos not in occupied]
+
+        if free:
+            self.x_position, self.y_position = random.choice(free)
 
 
 
@@ -344,7 +360,7 @@ def visualize_simulation(steps=SIMULATION_STEPS):
             
             # 5. Titel und Achsen
             
-            ax.set_title(f"Flachsee Simulation - Schritt {current_step + 1}/{steps}", fontsize=14, pad=25)
+            ax.set_title(f"Flat-Lake simulation - Step {current_step + 1}/{steps}", fontsize=14, pad=25)
             
             # KORREKTUR: Wir nutzen y=1.03 für eine feste, saubere Position über dem Grid
             if is_paused[0]:
