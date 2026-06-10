@@ -134,7 +134,7 @@ class Fisher:
                 self.x_position, self.y_position = best_position
 
 # Initialization function to set up the lake-grid and the fishers:
-def initialize():
+def initialize(initial_counts = None):
     """Initializes the grid of patches and the list of fishers."""
     # Create a grid of patches:
     grid = []
@@ -148,20 +148,41 @@ def initialize():
 
     # Create a list of fishers:
     fishers = []
-    for i in range(NUM_FISHERS):
-        x = random.randint(0, WIDTH - 1)
-        y = random.randint(0, LENGTH - 1)
-        strategy = random.choice(STRATEGIES)  ####Evtl nicht random sondern bestimmte Anteile
-        if strategy == "imitator":
-            #current_strategy = "egoist" # Imitators start as egoists but can change their strategy later
-            current_strategy = random.choice(["egoist", "cooperator", "sanctioner"]) #Gemini hat vorgeschlagen, Imitatoren zu Beginn auch zufällig wählen zu lassen
-        else:
-            current_strategy = strategy
-        fisher = Fisher(x_position=x, y_position=y, strategy=strategy, current_strategy=current_strategy)
-        fishers.append(fisher)
-    
+
+    use_initial_counts = initial_counts is not None and all(count is not None for count in initial_counts.values())
+
+    if use_initial_counts:
+        counts = {s: initial_counts[s] if initial_counts[s] is not None else 0 for s in STRATEGIES}
+
+        print(f"Initial counts provided: {counts}")
+
+        for strategy, count in counts.items():
+            for _ in range(count):
+                x = random.randint(0, WIDTH - 1)
+                y = random.randint(0, LENGTH - 1)
+                if strategy == "imitator":
+                    current_strategy = random.choice(["egoist", "cooperator", "sanctioner"])
+                else:
+                    current_strategy = strategy
+                fisher = Fisher(x_position=x, y_position=y, strategy=strategy, current_strategy=current_strategy)
+                fishers.append(fisher)
+
+    else: 
+        print(f"No initial counts provided, initializing fishers with random strategies.")
+        for i in range(NUM_FISHERS):
+            x = random.randint(0, WIDTH - 1)
+            y = random.randint(0, LENGTH - 1)
+            strategy = random.choice(STRATEGIES)  ####Evtl nicht random sondern bestimmte Anteile
+            if strategy == "imitator":
+                #current_strategy = "egoist" # Imitators start as egoists but can change their strategy later
+                current_strategy = random.choice(["egoist", "cooperator", "sanctioner"]) #Gemini hat vorgeschlagen, Imitatoren zu Beginn auch zufällig wählen zu lassen
+            else:
+                current_strategy = strategy
+            fisher = Fisher(x_position=x, y_position=y, strategy=strategy, current_strategy=current_strategy)
+            fishers.append(fisher)
+        
     for fisher in fishers:
-        fisher.move(fishers, grid) # Move fishers to ensure they don't start on the same patch
+            fisher.move(fishers, grid) # Move fishers to ensure they don't start on the same patch
 
     return grid, fishers
 
@@ -308,7 +329,7 @@ def step(grid, fishers):
         fisher.move(fishers, grid)
 
 
-def visualize_simulation(steps=SIMULATION_STEPS):
+def visualize_simulation(steps = SIMULATION_STEPS, initial_counts = None):
     """Visulaizes the simulation live an allows to pause by pressing the spacebar."""
     history = {
         "biomass": [],
@@ -325,15 +346,10 @@ def visualize_simulation(steps=SIMULATION_STEPS):
     ax_catch = fig.add_subplot(4, 2, 6)    # Catch mitte rechts
     ax_strategies = fig.add_subplot(4, 2, 8) # Strategien unten rechts
 
-    # ax_cum = {}
-    # for i, s in enumerate(STRATEGIES):
-    #     ax_cum[s] = plt.subplot2grid((4, 3), (i, 2))
-
-
     # Zustand für die Pausenfunktion
     is_paused = [False] # Liste, damit wir sie in der Event-Funktion modifizieren können
     current_step = [0]
-    grid, fishers = initialize() 
+    grid, fishers = initialize(initial_counts = initial_counts) 
     cbar = None
 
     color_map = {
@@ -474,8 +490,16 @@ def main():
     else:
         print("STATUS: Distribution Sweep deactivated - Sanction costs will be borne by sanctioners only.")
     
+    initial_counts = {
+        "egoist": args.egoists,
+        "imitator": args.imitators,
+        "cooperator": args.cooperators,
+        "sanctioner": args.sanctioners
+    }
+
+
     # Ruft die neue Visualisierung auf
-    visualize_simulation(steps=SIMULATION_STEPS)
+    visualize_simulation(steps = SIMULATION_STEPS, initial_counts = initial_counts)
 
 if __name__ == "__main__":
     main()
