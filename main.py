@@ -213,10 +213,8 @@ def is_cooperative(fisher):
 def apply_sanctions(fishers):
 
     sustainable_catch = GROWTH_RATE * CAPACITY * 0.5
-
     total_subsidy_pool = 0.0
     sustainable_fishers = []
-
 
     for sanctioner in fishers:
         if sanctioner.strategy != "sanctioner":
@@ -225,7 +223,8 @@ def apply_sanctions(fishers):
         neighbors = get_neighbors(sanctioner, fishers)
         for neighbor in neighbors:
             if neighbor.catch > SANCTION_THRESHOLD * sustainable_catch:
-                neighbor.total_catch -= SANCTION_COST #Kosten für regelbruch
+                confiscated_fish = min(SANCTION_COST, neighbor.catch) 
+                neighbor.catch -= confiscated_fish
 
                 if DISTRIBUTION_SWEEP:
                     keep_amount = SANCTION_COST * SANCTIONER_KEEP_RATIO
@@ -233,24 +232,26 @@ def apply_sanctions(fishers):
                     sanctioner.total_catch += (keep_amount - PUNISHER_COST)
                     total_subsidy_pool += subsidy_amount
                 else:
-                    sanctioner.total_catch -= PUNISHER_COST
+                    sanctioner.catch -= PUNISHER_COST
                 
                 sanctioner.sanction_cost += PUNISHER_COST
 
-        if DISTRIBUTION_SWEEP:
+        if DISTRIBUTION_SWEEP and total_subsidy_pool > 0:
             for f in fishers:
                 if f.catch <= SANCTION_THRESHOLD * sustainable_catch:
                     sustainable_fishers.append(f)
 
-            if total_subsidy_pool > 0 and len(sustainable_fishers) > 0:
+            if len(sustainable_fishers) > 0:
                 share_per_fisher = total_subsidy_pool / len(sustainable_fishers)
                 for f in sustainable_fishers:
-                    f.total_catch += share_per_fisher
+                    f.catch += share_per_fisher
 
 
 #kosten für die durchführung der sanktion
-                sanctioner.total_catch -= PUNISHER_COST
-                sanctioner.sanction_cost += PUNISHER_COST
+        if sanctioner.strategy == "sanctioner" and len(neighbors) > 0:
+            sanctioner.catch -= PUNISHER_COST
+            sanctioner.total_catch -= PUNISHER_COST
+            sanctioner.sanction_cost += PUNISHER_COST
                 
 
 def diffuse_biomass(grid):
@@ -318,11 +319,13 @@ def step(grid, fishers):
         fisher.catch_fish(patch, neighbors)
         
         fisher.catch = min(fisher.catch, patch.biomass) # Catch cannot be more than the available biomass
-        fisher.total_catch += fisher.catch
         patch.biomass -= fisher.catch
         patch.biomass = max(0.0, patch.biomass) # Biomass cannot be negative
        
     apply_sanctions(fishers)
+
+    for fisher in fishers:
+        fisher.total_catch += fisher.catch
         
     # After all fishers have caught fish, they move to a new patch:
     for fisher in fishers:
