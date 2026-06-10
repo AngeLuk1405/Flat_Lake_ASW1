@@ -292,25 +292,15 @@ def step(grid, fishers):
 
 
 def visualize_simulation(steps=SIMULATION_STEPS):
-    """Führt die Simulation in einer Endlosschleife aus, erlaubt Pausen per Leertaste
-
-    und startet nach Ablauf der Schritte automatisch von vorne.
-    """
-    plt.ion()
+    """Visulaizes the simulation live an allows to pause by pressing the spacebar."""
     fig, ax = plt.subplots(figsize=(8, 8))
-    
+    fig.subplots_adjust(right=0.75)
+
     # Zustand für die Pausenfunktion
     is_paused = [False] # Liste, damit wir sie in der Event-Funktion modifizieren können
-
-    # Event-Handler für Tastaturdrücke (Leertaste für Pause)
-    def on_press(event):
-        if event.key == ' ':
-            is_paused[0] = not is_paused[0]
-            if is_paused[0]:
-                ax.set_title(f"{ax.get_title()} (PAUSIERT - Leertaste drücken)")
-            fig.canvas.draw()
-
-    fig.canvas.mpl_connect('key_press_event', on_press)
+    current_step = [0]
+    grid, fishers = initialize() 
+    cbar = None
 
     color_map = {
         "egoist": "red",
@@ -319,72 +309,60 @@ def visualize_simulation(steps=SIMULATION_STEPS):
         "imitator": "gold"
     }
 
-    # UNENDLICHE SCHLEIFE: Startet immer wieder von vorne
-    while True:
-        # Jedes Mal, wenn wir von vorne starten, initialisieren wir den See & die Fischer neu
-        grid, fishers = initialize()
-        
-        current_step = 0
-        while current_step < steps:
-            # Wenn pausiert ist, warten wir einfach und überspringen den Simulationsschritt
-            if is_paused[0]:
-                plt.pause(0.1)
-                continue
-                
-            # 1. Simulationsschritt ausführen
-            step(grid, fishers)
-            
-            # 2. Plot zurücksetzen
-            ax.clear()
-            
-            # 3. Biomasse-Grid als Hintergrund (Heatmap)
-            biomass_matrix = [[patch.biomass for patch in row] for row in grid]
-            im = ax.imshow(biomass_matrix, cmap='YlGn', origin='lower', vmin=0, vmax=CAPACITY)
-            
-            if current_step == 0:
-                # Colorbar nur beim ersten Frame des aktuellen Durchlaufs hinzufügen
-                if not hasattr(visualize_simulation, '_cbar'):
-                    visualize_simulation._cbar = fig.colorbar(im, ax=ax, orientation='vertical', shrink=0.7)
-                    visualize_simulation._cbar.set_label('Biomasse (Fischbestand)', rotation=270, labelpad=15)
-            
-            # 4. Fischer als Punkte zeichnen
-            strategy_groups = {strat: ([], []) for strat in STRATEGIES}
-            for f in fishers:
-                strategy_groups[f.strategy][0].append(f.x_position)
-                strategy_groups[f.strategy][1].append(f.y_position)
-                
-            for strategy, (xs, ys) in strategy_groups.items():
-                if xs:
-                    ax.scatter(xs, ys, c=color_map[strategy], label=strategy, 
-                               s=100, edgecolors='black', zorder=3)
-            
-            # 5. Titel und Achsen
-            
-            ax.set_title(f"Flat-Lake simulation - Step {current_step + 1}/{steps}", fontsize=14, pad=25)
-            
-            # KORREKTUR: Wir nutzen y=1.03 für eine feste, saubere Position über dem Grid
-            if is_paused[0]:
-                ax.text(0.5, 1.03, "[ PAUSIERT ] - Leertaste drücken zum Fortsetzen", 
-                        transform=ax.transAxes, color="red", weight="bold", ha="center", va="bottom")
-            else:
-                ax.text(0.5, 1.03, "Tipp: [ Leertaste ] drücken zum Pausieren", 
-                        transform=ax.transAxes, color="gray", style="italic", ha="center", va="bottom")
-            ax.set_xlabel("X-Koordinate")
-            ax.set_ylabel("Y-Koordinate")
-            ax.set_xlim(-0.5, WIDTH - 0.5)
-            ax.set_ylim(-0.5, LENGTH - 0.5)
-            ax.legend(loc='upper right', bbox_to_anchor=(1.25, 1))
-            
-            # --- GESCHWINDIGKEIT RECODELN ---
-            # Ändere diese Zahl, um es schneller (z.B. 0.01) oder langsamer (z.B. 0.5) zu machen:
-            plt.pause(0.2) 
-            
-            current_step += 1
-            
-        print("Durchlauf beendet. Starte neuen Durchlauf...")
-        plt.pause(1.5) # Kurze Verschnaufpause vor dem automatischen Neustart
+    # Event-Handler für Tastaturdrücke (Leertaste für Pause)
+    def on_press(event):
+        if event.key == ' ':
+            is_paused[0] = not is_paused[0]
+            fig.canvas.draw()
 
-    plt.ioff()
+    def update(_):
+        nonlocal cbar
+        if is_paused[0] or current_step[0] >= steps:
+            return
+        
+        step(grid, fishers)
+        ax.clear()
+
+        biomass_matrix = [[patch.biomass for patch in row] for row in grid]
+        im = ax.imshow(biomass_matrix, cmap='YlGn', origin='lower', vmin=0, vmax=CAPACITY)
+
+        if cbar is None:
+            cbar = fig.colorbar(im, ax=ax, orientation='vertical', shrink=0.7)
+            cbar.set_label('Biomasse (Fischbestand)', rotation=270, labelpad=15)
+
+        strategy_groups = {strat: ([], []) for strat in STRATEGIES}
+        for f in fishers:
+            strategy_groups[f.strategy][0].append(f.x_position)
+            strategy_groups[f.strategy][1].append(f.y_position)
+
+        for strategy, (xs, ys) in strategy_groups.items():
+            if xs:
+                ax.scatter(xs, ys, c=color_map[strategy], label=strategy, 
+                           s=100, edgecolors='black', zorder=3)
+        
+        ax.set_title(f"Flat-Lake simulation - Step {current_step[0] + 1}/{steps}", fontsize=14, pad=25)
+
+        if is_paused[0]:
+            ax.text(0.5, 1.03, "[ PAUSIERT ] - Leertaste drücken zum Fortsetzen", 
+                    transform=ax.transAxes, color="red", weight="bold", ha="center", va="bottom")
+        else:
+            ax.text(0.5, 1.03, "Tipp: [ Leertaste ] drücken zum Pausieren", 
+                    transform=ax.transAxes, color="gray", style="italic", ha="center", va="bottom")
+        
+        ax.set_xlabel("X-Koordinate")
+        ax.set_ylabel("Y-Koordinate")
+        ax.set_xlim(-0.5, WIDTH - 0.5)
+        ax.set_ylim(-0.5, LENGTH - 0.5)
+        ax.legend(loc='upper right', bbox_to_anchor=(1.5, 1))
+
+        current_step[0] += 1
+        fig.canvas.draw()
+
+    fig.canvas.mpl_connect('key_press_event', on_press)
+    timer = fig.canvas.new_timer(interval=200) # Update alle 200 ms
+    timer.add_callback(update, ax)
+    timer.start()
+    
     plt.show()
 
 def main():
