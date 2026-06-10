@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import random
 import math
 import matplotlib.pyplot as plt
+import argparse
 
 # Constants:
 WIDTH = 20 # Width of the lake grid (x-axis)
@@ -19,6 +20,8 @@ PUNISHER_COST = 0.2
 SANCTION_THRESHOLD = 1.2
 NACHHALTIG_FISCHEN_ABER_PROFIT_EIN_BISSCHEN_AUSREIZEN = 5
 RANDOM_MOVE_CHANCE = 0.2 # Chance that a fisher moves to a random patch instead of the best patch
+SANCTIONER_KEEP_RATIO = 0.3 # part of the catch that sanctioners keep for themselves, when they sanction others
+DISTRIBUTION_SWEEP = False # If True, the sanction cost is distributed to sustainable fishers
 
 @dataclass
 class Patch:
@@ -190,18 +193,40 @@ def apply_sanctions(fishers):
 
     sustainable_catch = GROWTH_RATE * CAPACITY * 0.5
 
-    for sanctioner in fishers:
+    total_subsidy_pool = 0.0
+    sustainable_fishers = []
 
+
+    for sanctioner in fishers:
         if sanctioner.strategy != "sanctioner":
             continue
 
         neighbors = get_neighbors(sanctioner, fishers)
-
         for neighbor in neighbors:
-
             if neighbor.catch > SANCTION_THRESHOLD * sustainable_catch:
-
                 neighbor.total_catch -= SANCTION_COST #Kosten für regelbruch
+
+                if DISTRIBUTION_SWEEP:
+                    keep_amount = SANCTION_COST * SANCTIONER_KEEP_RATIO
+                    subsidy_amount = SANCTION_COST * (1 - SANCTIONER_KEEP_RATIO)
+                    sanctioner.total_catch += (keep_amount - PUNISHER_COST)
+                    total_subsidy_pool += subsidy_amount
+                else:
+                    sanctioner.total_catch -= PUNISHER_COST
+                
+                sanctioner.sanction_cost += PUNISHER_COST
+
+        if DISTRIBUTION_SWEEP:
+            for f in fishers:
+                if f.catch <= SANCTION_THRESHOLD * sustainable_catch:
+                    sustainable_fishers.append(f)
+
+            if total_subsidy_pool > 0 and len(sustainable_fishers) > 0:
+                share_per_fisher = total_subsidy_pool / len(sustainable_fishers)
+                for f in sustainable_fishers:
+                    f.total_catch += share_per_fisher
+
+
 #kosten für die durchführung der sanktion
                 sanctioner.total_catch -= PUNISHER_COST
                 sanctioner.sanction_cost += PUNISHER_COST
@@ -213,6 +238,7 @@ def diffuse_biomass(grid):
     new_biomass_grid = [[patch.biomass for patch in row] for row in grid]
     
     # 2. Diffusion berechnen
+
     for y in range(LENGTH):
         for x in range(WIDTH):
             current_biomass = grid[y][x].biomass
@@ -408,8 +434,20 @@ def visualize_simulation(steps=SIMULATION_STEPS):
 def main():
     # Seed entfernen oder drin lassen (mit Seed sieht jeder Neustart exakt gleich aus!)
     # random.seed(42) 
-    
+    global DISTRIBUTION_SWEEP
+
+    parser = argparse.ArgumentParser(description="Flat Lake Simulation")
+    parser.add_argument('--distribution-sweep', action='store_true', help='Activate distribution sweep for sanctions')
+    args = parser.parse_args()
+    DISTRIBUTION_SWEEP = args.distribution_sweep
+
     print("Starte Live-Visualisierung mit interaktiver Pause...")
+    print("=" * 50)
+    if DISTRIBUTION_SWEEP:
+        print("STATUS: Distribution Sweep activated - Sanction costs will be distributed to sustainable fishers.")
+    else:
+        print("STATUS: Distribution Sweep deactivated - Sanction costs will be borne by sanctioners only.")
+    
     # Ruft die neue Visualisierung auf
     visualize_simulation(steps=SIMULATION_STEPS)
 
