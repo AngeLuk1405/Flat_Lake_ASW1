@@ -8,7 +8,7 @@ WIDTH = 20 # Width of the lake grid (x-axis)
 LENGTH = 20 # Length of the lake grid (y-axis)
 NUM_FISHERS = 20 # Number of fisher-agents in the simulation
 CAPACITY = 100.0 # Carrying capacity of biomass in each lake-patch
-GROWTH_RATE = 0.3 # Growth rate of biomass in each patch
+GROWTH_RATE = 0.08 # Growth rate of biomass in each patch
 STRATEGIES = ["egoist", "imitator", "cooperator", "sanctioner"]
 DIFFUSION_COEFFICIENT = 0.1 # Coefficient for diffusion of biomass between patches
 SIMULATION_STEPS = 100
@@ -18,6 +18,7 @@ SANCTION_COST = 10
 PUNISHER_COST = 0.2
 SANCTION_THRESHOLD = 1.2
 NACHHALTIG_FISCHEN_ABER_PROFIT_EIN_BISSCHEN_AUSREIZEN = 5
+RANDOM_MOVE_CHANCE = 0.2 # Chance that a fisher moves to a random patch instead of the best patch
 
 @dataclass
 class Patch:
@@ -106,20 +107,8 @@ class Fisher:
         # Strafe auf alle verteilt oder auf die Kooperierer verteilt
         #########
 
-    def move(self, fishers):
-        """Moves the fisher to a random neighboring patch, that is not occupied by another fisher."""
-        # for _ in range(10): # Try max. 10 times to find a free patch, else stay
-        #     # Moves to a random patch in Moore neighborhood or stay in place
-        #     dx = random.choice([-1,0,1])
-        #     dy = random.choice([-1,0,1])
-        #     new_x = max(0, min(WIDTH - 1, self.x_position + dx))
-        #     new_y = max(0, min(LENGTH - 1, self.y_position + dy))
-
-        #     # Check if the new patch is already occupied:
-        #     if not any(other.x_position == new_x and other.y_position == new_y for other in fishers if other is not self):
-        #         self.x_position = new_x
-        #         self.y_position = new_y
-        #         break
+    def move(self, fishers, grid):
+        """Moves the fisher to a  neighboring patch, that is not occupied by another fisher."""
 
         # Alternative: Always move to a random neighbouring patch (without 10 tries)
         occupied = {(f.x_position, f.y_position) for f in fishers if f is not self}
@@ -135,9 +124,11 @@ class Fisher:
         free = [pos for pos in candidates if pos not in occupied]
 
         if free:
-            self.x_position, self.y_position = random.choice(free)
-
-
+             if random.random() < RANDOM_MOVE_CHANCE:
+                self.x_position, self.y_position = random.choice(free) # move to a random free patch
+             else:
+                best_position = max(free, key=lambda pos: grid[pos[1]][pos[0]].biomass) # move to the patch with the most biomass
+                self.x_position, self.y_position = best_position
 
 # Initialization function to set up the lake-grid and the fishers:
 def initialize():
@@ -147,7 +138,7 @@ def initialize():
     for y in range(LENGTH):
         row = []
         for x in range(WIDTH):
-            biomass = random.uniform(50, 100)
+            biomass = random.uniform(0, 100)
             patch = Patch(biomass=biomass, capacity=CAPACITY, growth_rate=GROWTH_RATE)
             row.append(patch)
         grid.append(row)
@@ -167,7 +158,7 @@ def initialize():
         fishers.append(fisher)
     
     for fisher in fishers:
-        fisher.move(fishers) # Move fishers to ensure they don't start on the same patch
+        fisher.move(fishers, grid) # Move fishers to ensure they don't start on the same patch
 
     return grid, fishers
 
@@ -288,7 +279,7 @@ def step(grid, fishers):
         
     # After all fishers have caught fish, they move to a new patch:
     for fisher in fishers:
-        fisher.move(fishers)
+        fisher.move(fishers, grid)
 
 
 def visualize_simulation(steps=SIMULATION_STEPS):
