@@ -299,10 +299,7 @@ def visualize_simulation(steps=SIMULATION_STEPS):
         "counts": {s: [] for s in STRATEGIES}
     }   
     
-    
-    
-    # fig, ax = plt.subplots(figsize=(8, 8))
-    # fig.subplots_adjust(right=0.75)
+
     fig = plt.figure(figsize=(14, 8))
     ax = fig.add_subplot(1, 2, 1)  # Grid links
     ax_biomass = fig.add_subplot(3, 2, 2)   # Biomasse oben rechts
@@ -328,9 +325,14 @@ def visualize_simulation(steps=SIMULATION_STEPS):
             is_paused[0] = not is_paused[0]
             fig.canvas.draw()
 
-    def update(_):
+
+    def update(*args, **kwargs):
         nonlocal cbar
-        if is_paused[0] or current_step[0] >= steps:
+        if is_paused[0]:
+            return
+        
+        if current_step[0] >= steps:
+            timer.stop()
             return
         
         step(grid, fishers)
@@ -366,7 +368,7 @@ def visualize_simulation(steps=SIMULATION_STEPS):
         ax.set_ylabel("Y-Koordinate")
         ax.set_xlim(-0.5, WIDTH - 0.5)
         ax.set_ylim(-0.5, LENGTH - 0.5)
-        ax.legend(loc='upper right', bbox_to_anchor=(1.5, 1))
+        ax.legend(loc='upper center', bbox_to_anchor = (0.5, -0.12), ncol = 4, frameon = True, fontsize = 10)
 
         # Daten sammeln
         history["biomass"].append(sum(patch.biomass for row in grid for patch in row) / (WIDTH * LENGTH))
@@ -374,7 +376,9 @@ def visualize_simulation(steps=SIMULATION_STEPS):
         for s in STRATEGIES:
             fishers_of_strategy = [f for f in fishers if f.strategy == s]
             history["catch"][s].append(sum(f.catch for f in fishers_of_strategy))
-            history["counts"][s].append(len(fishers_of_strategy))
+
+        for s in ["egoist", "cooperator", "sanctioner"]:
+            history["counts"][s].append(sum(1 for f in fishers if f.current_strategy == s))
 
         # Diagramme zeichnen
         x = list(range(len(history["biomass"])))
@@ -391,23 +395,23 @@ def visualize_simulation(steps=SIMULATION_STEPS):
         ax_catch.set_ylabel("Fang")
 
         ax_strategies.clear()
-        for s in STRATEGIES:
+        for s in ["egoist", "cooperator", "sanctioner"]:
             ax_strategies.plot(x, history["counts"][s], color=color_map[s], label=s)
         ax_strategies.set_title("Anzahl Strategien", fontsize=9)
         ax_strategies.set_ylabel("Anzahl")
         ax_strategies.set_xlabel("Schritt")
         ax_strategies.legend(fontsize=7)
 
-
-
         current_step[0] += 1
         fig.canvas.draw()
 
     fig.canvas.mpl_connect('key_press_event', on_press)
     timer = fig.canvas.new_timer(interval=200) # Update alle 200 ms
-    timer.add_callback(update, ax)
+    timer.add_callback(update)
     timer.start()
     
+    plt.tight_layout()
+
     plt.show()
 
 def main():
