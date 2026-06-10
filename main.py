@@ -313,15 +313,22 @@ def visualize_simulation(steps=SIMULATION_STEPS):
     history = {
         "biomass": [],
         "catch": {s: [] for s in STRATEGIES},
+        "cum_catch": {s: [] for s in STRATEGIES},
         "counts": {s: [] for s in STRATEGIES}
     }   
     
 
-    fig = plt.figure(figsize=(14, 8))
-    ax = fig.add_subplot(1, 2, 1)  # Grid links
-    ax_biomass = fig.add_subplot(3, 2, 2)   # Biomasse oben rechts
-    ax_catch = fig.add_subplot(3, 2, 4)     # Catch mitte rechts
-    ax_strategies = fig.add_subplot(3, 2, 6) # Strategien unten rechts
+    fig = plt.figure(figsize=(14, 9))
+    ax = fig.add_subplot(1, 2, 1) # Hauptplot für die Biomasse und die Positionen der Fischer
+    ax_biomass = fig.add_subplot(4, 2, 2)   # Biomasse oben rechts
+    ax_current = fig.add_subplot(4, 2, 4)    # Catch mitte rechts
+    ax_catch = fig.add_subplot(4, 2, 6)    # Catch mitte rechts
+    ax_strategies = fig.add_subplot(4, 2, 8) # Strategien unten rechts
+
+    # ax_cum = {}
+    # for i, s in enumerate(STRATEGIES):
+    #     ax_cum[s] = plt.subplot2grid((4, 3), (i, 2))
+
 
     # Zustand für die Pausenfunktion
     is_paused = [False] # Liste, damit wir sie in der Event-Funktion modifizieren können
@@ -392,7 +399,11 @@ def visualize_simulation(steps=SIMULATION_STEPS):
 
         for s in STRATEGIES:
             fishers_of_strategy = [f for f in fishers if f.strategy == s]
-            history["catch"][s].append(sum(f.catch for f in fishers_of_strategy))
+            current_catch_sum = sum(f.catch for f in fishers_of_strategy)
+            history["catch"][s].append(current_catch_sum)
+
+            total_group_catch = sum(f.total_catch for f in fishers_of_strategy)
+            history["cum_catch"][s].append(total_group_catch)
 
         for s in ["egoist", "cooperator", "sanctioner"]:
             history["counts"][s].append(sum(1 for f in fishers if f.current_strategy == s))
@@ -405,11 +416,20 @@ def visualize_simulation(steps=SIMULATION_STEPS):
         ax_biomass.set_title("Ø Biomasse pro Schritt", fontsize=9)
         ax_biomass.set_ylabel("Biomasse")
 
+        ax_current.clear()
+        for s in STRATEGIES:
+            ax_current.plot(x, history["catch"][s], color=color_map[s],linewidth=1.5)
+        ax_current.set_title("Aktueller Fang pro Schritt", fontsize=9)
+        ax_current.set_ylabel("Fang")
+        ax_current.grid(True, linestyle=':', alpha=0.5)
+
         ax_catch.clear()
         for s in STRATEGIES:
-            ax_catch.plot(x, history["catch"][s], color=color_map[s], label=s)
-        ax_catch.set_title("Fang pro Schritt", fontsize=9)
-        ax_catch.set_ylabel("Fang")
+            ax_catch.plot(x, history["cum_catch"][s], color=color_map[s], linewidth=2, label=s)
+        ax_catch.set_title("Kumulativer Fang pro Schritt", fontsize=9)
+        ax_catch.set_ylabel("Gesamtertrag")
+        ax_catch.grid(True, linestyle=':', alpha=0.5)
+        ax_catch.legend(loc='upper left', fontsize=8)
 
         ax_strategies.clear()
         for s in ["egoist", "cooperator", "sanctioner"]:
@@ -438,6 +458,12 @@ def main():
 
     parser = argparse.ArgumentParser(description="Flat Lake Simulation")
     parser.add_argument('--distribution-sweep', action='store_true', help='Activate distribution sweep for sanctions')
+    parser.add_argument('--egoists', type=int, default = None, help='Initial number of egoist fishers')
+    parser.add_argument('--imitators', type=int, default = None, help='Initial number of imitator fishers')
+    parser.add_argument('--cooperators', type=int, default = None, help='Initial number of cooperator fishers')
+    parser.add_argument('--sanctioners', type=int, default = None, help='Initial number of sanctioner fishers')
+    
+    
     args = parser.parse_args()
     DISTRIBUTION_SWEEP = args.distribution_sweep
 
