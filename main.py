@@ -293,8 +293,21 @@ def step(grid, fishers):
 
 def visualize_simulation(steps=SIMULATION_STEPS):
     """Visulaizes the simulation live an allows to pause by pressing the spacebar."""
-    fig, ax = plt.subplots(figsize=(8, 8))
-    fig.subplots_adjust(right=0.75)
+    history = {
+        "biomass": [],
+        "catch": {s: [] for s in STRATEGIES},
+        "counts": {s: [] for s in STRATEGIES}
+    }   
+    
+    
+    
+    # fig, ax = plt.subplots(figsize=(8, 8))
+    # fig.subplots_adjust(right=0.75)
+    fig = plt.figure(figsize=(14, 8))
+    ax = fig.add_subplot(1, 2, 1)  # Grid links
+    ax_biomass = fig.add_subplot(3, 2, 2)   # Biomasse oben rechts
+    ax_catch = fig.add_subplot(3, 2, 4)     # Catch mitte rechts
+    ax_strategies = fig.add_subplot(3, 2, 6) # Strategien unten rechts
 
     # Zustand für die Pausenfunktion
     is_paused = [False] # Liste, damit wir sie in der Event-Funktion modifizieren können
@@ -355,6 +368,38 @@ def visualize_simulation(steps=SIMULATION_STEPS):
         ax.set_ylim(-0.5, LENGTH - 0.5)
         ax.legend(loc='upper right', bbox_to_anchor=(1.5, 1))
 
+        # Daten sammeln
+        history["biomass"].append(sum(patch.biomass for row in grid for patch in row) / (WIDTH * LENGTH))
+
+        for s in STRATEGIES:
+            fishers_of_strategy = [f for f in fishers if f.strategy == s]
+            history["catch"][s].append(sum(f.catch for f in fishers_of_strategy))
+            history["counts"][s].append(len(fishers_of_strategy))
+
+        # Diagramme zeichnen
+        x = list(range(len(history["biomass"])))
+
+        ax_biomass.clear()
+        ax_biomass.plot(x, history["biomass"], color="green")
+        ax_biomass.set_title("Ø Biomasse pro Schritt", fontsize=9)
+        ax_biomass.set_ylabel("Biomasse")
+
+        ax_catch.clear()
+        for s in STRATEGIES:
+            ax_catch.plot(x, history["catch"][s], color=color_map[s], label=s)
+        ax_catch.set_title("Fang pro Schritt", fontsize=9)
+        ax_catch.set_ylabel("Fang")
+
+        ax_strategies.clear()
+        for s in STRATEGIES:
+            ax_strategies.plot(x, history["counts"][s], color=color_map[s], label=s)
+        ax_strategies.set_title("Anzahl Strategien", fontsize=9)
+        ax_strategies.set_ylabel("Anzahl")
+        ax_strategies.set_xlabel("Schritt")
+        ax_strategies.legend(fontsize=7)
+
+
+
         current_step[0] += 1
         fig.canvas.draw()
 
@@ -375,8 +420,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-########
-#Diagramme: Biomasse über Zeit, Total Catch (in Abh. der Strategien evtl. mit Imitator) über Zeit
-#Anzahl der Strategien über Zeit
-########
