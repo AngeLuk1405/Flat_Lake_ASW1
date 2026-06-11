@@ -13,7 +13,7 @@ CAPACITY = 100.0 # Carrying capacity of biomass in each lake-patch
 GROWTH_RATE = 0.08 # Growth rate of biomass in each patch
 STRATEGIES = ["egoist", "imitator", "cooperator", "sanctioner"] # Possible strategies for fishers: egoist, imitator, cooperator, sanctioner
 DIFFUSION_COEFFICIENT = 0.1 # Coefficient for diffusion of biomass between patches
-SIMULATION_STEPS = 100 # Number of steps to run the simulation
+SIMULATION_STEPS = 300 # Number of steps to run the simulation
 SIGHT_RADIUS = 3 # Radius within which fishers can see and interact with other fishers
 COOPERATION_THRESHOLD = 50 # Minimal percentage of cooperators or sanctioners in sight for cooperators to cooperate
 SANCTION_COST = 10 # Amount of catch that is confiscated from egoists by sanctioners when they sanction them
@@ -362,14 +362,13 @@ def visualize_simulation(steps = SIMULATION_STEPS, initial_counts = None):
     # Update function to advance the simulation and update the visualization at each step:
     def update(*args, **kwargs):
         nonlocal cbar
-        if is_paused[0]:
-            return
-        
         if current_step[0] >= steps:
             timer.stop()
             return
-        
-        step(grid, fishers)
+
+        if not is_paused[0]:
+            step(grid, fishers)
+
         ax.clear()
 
         # Create a matrix of biomass values for the heatmap:
@@ -378,7 +377,7 @@ def visualize_simulation(steps = SIMULATION_STEPS, initial_counts = None):
         # Add colorbar
         if cbar is None:
             cbar = fig.colorbar(im, ax=ax, orientation='vertical', shrink=0.7)
-            cbar.set_label('Biomasse (Fischbestand)', rotation=270, labelpad=15)
+            cbar.set_label('Biomass (Fish Stock)', rotation=270, labelpad=15)
 
         # Group fishers by strategy for plotting
         strategy_groups = {strat: ([], []) for strat in STRATEGIES}
@@ -392,37 +391,37 @@ def visualize_simulation(steps = SIMULATION_STEPS, initial_counts = None):
                            s=100, edgecolors='black', zorder=3)
         
         # Set title and labels
-        ax.set_title(f"Flat-Lake simulation - Step {current_step[0] + 1}/{steps}", fontsize=14, pad=25)
+        ax.set_title(f"Flat-Lake Simulation - Step {current_step[0] + 1}/{steps}", fontsize=14, pad=25)
 
         if is_paused[0]:
-            ax.text(0.5, 1.03, "[ PAUSIERT ] - Leertaste drücken zum Fortsetzen", 
+            ax.text(0.5, 1.03, "[ PAUSED ] - Press spacebar to resume", 
                     transform=ax.transAxes, color="red", weight="bold", ha="center", va="bottom")
         else:
-            ax.text(0.5, 1.03, "Tipp: [ Leertaste ] drücken zum Pausieren", 
+            ax.text(0.5, 1.03, "Tip: Press [ spacebar ] to pause", 
                     transform=ax.transAxes, color="gray", style="italic", ha="center", va="bottom")
         
-        ax.set_xlabel("X-Koordinate")
-        ax.set_ylabel("Y-Koordinate")
+        ax.set_xlabel("X-Coordinate")
+        ax.set_ylabel("Y-Coordinate")
         ax.set_xlim(-0.5, WIDTH - 0.5)
         ax.set_ylim(-0.5, LENGTH - 0.5)
         ax.legend(loc='upper center', bbox_to_anchor = (0.5, -0.12), ncol = 4, frameon = True, fontsize = 10)
 
+        if not is_paused[0]:
+            ##### Update history for plots #####
+            history["biomass"].append(sum(patch.biomass for row in grid for patch in row) / (WIDTH * LENGTH))
 
-        ##### Update history for plots #####
-        history["biomass"].append(sum(patch.biomass for row in grid for patch in row) / (WIDTH * LENGTH))
+            # Update current catch and cumulative catch for each strategy, as well as the count of fishers using each strategy:
+            for s in STRATEGIES:
+                fishers_of_strategy = [f for f in fishers if f.strategy == s]
+                count = len(fishers_of_strategy)
+                current_catch_sum = sum(f.catch for f in fishers_of_strategy) / count if count > 0 else 0
+                history["catch"][s].append(current_catch_sum)
 
-        # Update current catch and cumulative catch for each strategy, as well as the count of fishers using each strategy:
-        for s in STRATEGIES:
-            fishers_of_strategy = [f for f in fishers if f.strategy == s]
-            count = len(fishers_of_strategy)
-            current_catch_sum = sum(f.catch for f in fishers_of_strategy) / count if count > 0 else 0
-            history["catch"][s].append(current_catch_sum)
+                total_group_catch = sum(f.total_catch for f in fishers_of_strategy) / count if count > 0 else 0
+                history["cum_catch"][s].append(total_group_catch)
 
-            total_group_catch = sum(f.total_catch for f in fishers_of_strategy) / count if count > 0 else 0
-            history["cum_catch"][s].append(total_group_catch)
-
-        for s in ["egoist", "cooperator", "sanctioner"]:
-            history["counts"][s].append(sum(1 for f in fishers if f.current_strategy == s))
+            for s in ["egoist", "cooperator", "sanctioner"]:
+                history["counts"][s].append(sum(1 for f in fishers if f.current_strategy == s))
 
 
         ##### Update the plots on the right side #####
@@ -430,43 +429,46 @@ def visualize_simulation(steps = SIMULATION_STEPS, initial_counts = None):
 
         ax_biomass.clear()
         ax_biomass.plot(x, history["biomass"], color="green")
-        ax_biomass.set_title("Ø Biomasse pro Schritt", fontsize=9)
-        ax_biomass.set_ylabel("Biomasse")
+        ax_biomass.set_title("Ø Biomass", fontsize=9)
+        ax_biomass.set_ylabel("Biomass")
+        ax_biomass.grid(True, linestyle=':', alpha=0.5)
 
         ax_current.clear()
         for s in STRATEGIES:
             ax_current.plot(x, history["catch"][s], color=color_map[s],linewidth=1.5)
-        ax_current.set_title("Aktueller Fang pro Kopf pro Schritt", fontsize=9)
-        ax_current.set_ylabel("Fang")
+        ax_current.set_title("Current Catch per Capita", fontsize=9)
+        ax_current.set_ylabel("Catch")
         ax_current.grid(True, linestyle=':', alpha=0.5)
 
         ax_catch.clear()
         for s in STRATEGIES:
             ax_catch.plot(x, history["cum_catch"][s], color=color_map[s], linewidth=2, label=s)
-        ax_catch.set_title("Kumulativer Fang pro Kopf pro Schritt", fontsize=9)
-        ax_catch.set_ylabel("Gesamtertrag")
+        ax_catch.set_title("Cumulative Catch per Capita", fontsize=9)
+        ax_catch.set_ylabel("Total Catch")
         ax_catch.grid(True, linestyle=':', alpha=0.5)
         ax_catch.legend(loc='upper left', fontsize=8)
 
         ax_strategies.clear()
         for s in ["egoist", "cooperator", "sanctioner"]:
             ax_strategies.plot(x, history["counts"][s], color=color_map[s], label=s)
-        ax_strategies.set_title("Anzahl Strategien", fontsize=9)
-        ax_strategies.set_ylabel("Anzahl")
-        ax_strategies.set_xlabel("Schritt")
+        ax_strategies.set_title("Number of Strategies", fontsize=9)
+        ax_strategies.set_ylabel("Count")
+        ax_strategies.set_xlabel("Step")
         ax_strategies.legend(fontsize=7)
+        ax_strategies.grid(True, linestyle=':', alpha=0.5)
 
         # Increment the current step and redraw the canvas to update the visualization:
-        current_step[0] += 1
+        if not is_paused[0]:
+            current_step[0] += 1
         fig.canvas.draw()
 
     # Connect the key press event to the on_press function and start the timer to update the simulation:
     fig.canvas.mpl_connect('key_press_event', on_press)
-    timer = fig.canvas.new_timer(interval=200) # Update every 200 milliseconds (5 updates per second)
+    timer = fig.canvas.new_timer(interval=100) # Update every 100 milliseconds (10 updates per second)
     timer.add_callback(update)
     timer.start()
     
-    plt.tight_layout()
+    plt.tight_layout(pad=3.0)
 
     plt.show()
 
@@ -487,7 +489,7 @@ def main():
     DISTRIBUTION_SWEEP = args.distribution_sweep
 
     # Print initial status and settings for the simulation based on command line arguments
-    print("Starte Live-Visualisierung mit interaktiver Pause...")
+    print("Starting live visualization with interactive pause...")
     print("=" * 50)
     if DISTRIBUTION_SWEEP:
         print("STATUS: Distribution Sweep activated - Sanction costs will be distributed to sustainable fishers.")
