@@ -18,7 +18,7 @@ SIGHT_RADIUS = 3 # Radius within which fishers can see and interact with other f
 COOPERATION_THRESHOLD = 50 # Minimal percentage of cooperators or sanctioners in sight for cooperators to cooperate
 SANCTION_COST = 10 # Amount of catch that is confiscated from egoists by sanctioners when they sanction them
 SANCTION_THRESHOLD = 1.2
-NACHHALTIG_FISCHEN_ABER_PROFIT_EIN_BISSCHEN_AUSREIZEN = 5
+SUSTAINABLE_CATCH_MULTIPLIER = 5
 RANDOM_MOVE_CHANCE = 0.2 # Chance that a fisher moves to a random patch instead of the best patch
 SANCTIONER_KEEP_RATIO = 0.5 # part of the catch that sanctioners keep for themselves, when they sanction others
 DISTRIBUTION_SWEEP = False # If True, the sanction cost is distributed to sustainable fishers
@@ -67,11 +67,11 @@ class Fisher:
 
             if len(neighbors) == 0:
                 # If there are no neighbors, cooperators cooperate:
-                    self.catch = NACHHALTIG_FISCHEN_ABER_PROFIT_EIN_BISSCHEN_AUSREIZEN * patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
+                    self.catch = SUSTAINABLE_CATCH_MULTIPLIER * patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
             else:
                 if (number_cooperative / len(neighbors)) * 100 > COOPERATION_THRESHOLD:
                     # Cooperation means catching as much as the growth of the patch:
-                    self.catch = NACHHALTIG_FISCHEN_ABER_PROFIT_EIN_BISSCHEN_AUSREIZEN *patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
+                    self.catch = SUSTAINABLE_CATCH_MULTIPLIER *patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
                 else:
                     # If too many egoists are around, cooperators behave like egoists:
                     self.catch = patch.biomass
@@ -99,12 +99,12 @@ class Fisher:
             if self.current_strategy == "egoist":
                 self.catch = patch.biomass
             elif self.current_strategy in ["cooperator", "sanctioner"]:
-                self.catch = NACHHALTIG_FISCHEN_ABER_PROFIT_EIN_BISSCHEN_AUSREIZEN * patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
+                self.catch = SUSTAINABLE_CATCH_MULTIPLIER * patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
 
         ########### Sanctioner ##############
         # Sanctioners behave like cooperators, but they also sanction egoists in their sight radius by reducing their catch.
         elif self.strategy == "sanctioner":
-            self.catch = NACHHALTIG_FISCHEN_ABER_PROFIT_EIN_BISSCHEN_AUSREIZEN * patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
+            self.catch = SUSTAINABLE_CATCH_MULTIPLIER * patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
 
 
     ############### Moving Fishers ###############
