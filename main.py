@@ -63,15 +63,15 @@ class Fisher:
         # Cooperators cooperate if there are not too many egoists in the sight radius.
         # Else they behave like egoists. When there are no neighbors, they also cooperate.
         elif self.strategy == "cooperator":
-            number_cooperative =sum(1 for neighbor in neighbors if is_cooperative(neighbor))
+            number_cooperative = sum(1 for neighbor in neighbors if is_cooperative(neighbor))
 
             if len(neighbors) == 0:
                 # If there are no neighbors, cooperators cooperate:
-                    self.catch = SUSTAINABLE_CATCH_MULTIPLIER * patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
+                self.catch = SUSTAINABLE_CATCH_MULTIPLIER * patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
             else:
                 if (number_cooperative / len(neighbors)) * 100 > COOPERATION_THRESHOLD:
                     # Cooperation means catching as much as the growth of the patch:
-                    self.catch = SUSTAINABLE_CATCH_MULTIPLIER *patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
+                    self.catch = SUSTAINABLE_CATCH_MULTIPLIER * patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
                 else:
                     # If too many egoists are around, cooperators behave like egoists:
                     self.catch = patch.biomass
@@ -125,9 +125,9 @@ class Fisher:
         free = [pos for pos in candidates if pos not in occupied]
 
         if free:
-             if random.random() < RANDOM_MOVE_CHANCE:
+            if random.random() < RANDOM_MOVE_CHANCE:
                 self.x_position, self.y_position = random.choice(free) # move to a random free patch
-             else:
+            else:
                 best_position = max(free, key=lambda pos: grid[pos[1]][pos[0]].biomass) # move to the patch with the most biomass
                 self.x_position, self.y_position = best_position
 
@@ -182,7 +182,7 @@ def initialize(initial_counts = None):
         
     # Move fishers to ensure they don't start on the same patch
     for fisher in fishers:
-            fisher.move(fishers, grid) 
+        fisher.move(fishers, grid) 
 
     return grid, fishers
 
@@ -215,7 +215,6 @@ def is_cooperative(fisher):
 def apply_sanctions(fishers):
     sustainable_catch = GROWTH_RATE * CAPACITY * 0.5
     total_subsidy_pool = 0.0
-    sustainable_fishers = []
 
     for sanctioner in fishers:
         if sanctioner.strategy != "sanctioner":
@@ -235,15 +234,12 @@ def apply_sanctions(fishers):
                     sanctioner.total_catch += keep_amount
                     total_subsidy_pool += subsidy_amount
 
-        if DISTRIBUTION_SWEEP and total_subsidy_pool > 0:
-            for f in fishers:
-                if f.catch <= SANCTION_THRESHOLD * sustainable_catch:
-                    sustainable_fishers.append(f)
-
-            if len(sustainable_fishers) > 0:
-                share_per_fisher = total_subsidy_pool / len(sustainable_fishers)
-                for f in sustainable_fishers:
-                    f.catch += share_per_fisher
+    if DISTRIBUTION_SWEEP and total_subsidy_pool > 0:
+        sustainable_fishers = [f for f in fishers if f.catch <= SANCTION_THRESHOLD * sustainable_catch]
+        if len(sustainable_fishers) > 0:
+            share_per_fisher = total_subsidy_pool / len(sustainable_fishers)
+            for f in sustainable_fishers:
+                f.catch += share_per_fisher
                 
 ############ Diffusion of Biomass ############
 def diffuse_biomass(grid):
@@ -323,7 +319,7 @@ def step(grid, fishers):
 
 ############ Visualization ############
 def visualize_simulation(steps = SIMULATION_STEPS, initial_counts = None):
-    """Visulaizes the simulation live an allows to pause by pressing the spacebar."""
+    """Visualizes the simulation live and allows to pause by pressing the spacebar."""
     history = {
         "biomass": [],
         "catch": {s: [] for s in STRATEGIES},
