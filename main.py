@@ -414,10 +414,10 @@ def visualize_simulation(steps = SIMULATION_STEPS, initial_counts = None):
         # Update current catch and cumulative catch for each strategy, as well as the count of fishers using each strategy:
         for s in STRATEGIES:
             fishers_of_strategy = [f for f in fishers if f.strategy == s]
-            current_catch_sum = sum(f.catch for f in fishers_of_strategy)
+            count = len(fishers_of_strategy)
+            current_catch_sum = sum(f.catch for f in fishers_of_strategy) / count if count > 0 else 0
             history["catch"][s].append(current_catch_sum)
 
-            count = len(fishers_of_strategy)
             total_group_catch = sum(f.total_catch for f in fishers_of_strategy) / count if count > 0 else 0
             history["cum_catch"][s].append(total_group_catch)
 
@@ -436,7 +436,7 @@ def visualize_simulation(steps = SIMULATION_STEPS, initial_counts = None):
         ax_current.clear()
         for s in STRATEGIES:
             ax_current.plot(x, history["catch"][s], color=color_map[s],linewidth=1.5)
-        ax_current.set_title("Aktueller Fang pro Schritt", fontsize=9)
+        ax_current.set_title("Aktueller Fang pro Kopf pro Schritt", fontsize=9)
         ax_current.set_ylabel("Fang")
         ax_current.grid(True, linestyle=':', alpha=0.5)
 
