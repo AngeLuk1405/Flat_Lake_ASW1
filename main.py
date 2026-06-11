@@ -229,8 +229,8 @@ def apply_sanctions(fishers):
 
                 # Distribution Sweep: Sanction cost is distributed to sustainable fishers
                 if DISTRIBUTION_SWEEP:
-                    keep_amount = SANCTION_COST * SANCTIONER_KEEP_RATIO
-                    subsidy_amount = SANCTION_COST * (1 - SANCTIONER_KEEP_RATIO)
+                    keep_amount = confiscated_fish * SANCTIONER_KEEP_RATIO
+                    subsidy_amount = confiscated_fish * (1 - SANCTIONER_KEEP_RATIO)
                     sanctioner.total_catch += keep_amount
                     total_subsidy_pool += subsidy_amount
 
