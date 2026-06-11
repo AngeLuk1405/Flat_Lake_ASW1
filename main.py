@@ -417,7 +417,8 @@ def visualize_simulation(steps = SIMULATION_STEPS, initial_counts = None):
             current_catch_sum = sum(f.catch for f in fishers_of_strategy)
             history["catch"][s].append(current_catch_sum)
 
-            total_group_catch = sum(f.total_catch for f in fishers_of_strategy)
+            count = len(fishers_of_strategy)
+            total_group_catch = sum(f.total_catch for f in fishers_of_strategy) / count if count > 0 else 0
             history["cum_catch"][s].append(total_group_catch)
 
         for s in ["egoist", "cooperator", "sanctioner"]:
@@ -442,7 +443,7 @@ def visualize_simulation(steps = SIMULATION_STEPS, initial_counts = None):
         ax_catch.clear()
         for s in STRATEGIES:
             ax_catch.plot(x, history["cum_catch"][s], color=color_map[s], linewidth=2, label=s)
-        ax_catch.set_title("Kumulativer Fang pro Schritt", fontsize=9)
+        ax_catch.set_title("Kumulativer Fang pro Kopf pro Schritt", fontsize=9)
         ax_catch.set_ylabel("Gesamtertrag")
         ax_catch.grid(True, linestyle=':', alpha=0.5)
         ax_catch.legend(loc='upper left', fontsize=8)
@@ -470,7 +471,7 @@ def visualize_simulation(steps = SIMULATION_STEPS, initial_counts = None):
     plt.show()
 
 def main():
-    # random.seed(42) 
+    random.seed(42) 
     # Set up command line arguments to allow users to specify initial conditions and activate distribution sweep for sanctions:
     global DISTRIBUTION_SWEEP
 
