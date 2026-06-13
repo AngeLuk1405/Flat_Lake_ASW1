@@ -15,7 +15,7 @@ STRATEGIES = ["egoist", "imitator", "cooperator", "sanctioner"] # Possible strat
 DIFFUSION_COEFFICIENT = 0.1 # Coefficient for diffusion of biomass between patches
 SIMULATION_STEPS = 300 # Number of steps to run the simulation
 SIGHT_RADIUS = 3 # Radius within which fishers can see and interact with other fishers
-COOPERATION_THRESHOLD = 50 # Minimal percentage of cooperators or sanctioners in sight for cooperators to cooperate
+COOPERATION_THRESHOLD = 0.5 # Minimal percentage of cooperators or sanctioners in sight for cooperators to cooperate
 SANCTION_COST = 10 # Amount of catch that is confiscated from egoists by sanctioners when they sanction them
 SANCTION_THRESHOLD = 1.2
 SUSTAINABLE_CATCH_MULTIPLIER = 5
@@ -69,7 +69,7 @@ class Fisher:
                 # If there are no neighbors, cooperators cooperate:
                 self.catch = SUSTAINABLE_CATCH_MULTIPLIER * patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
             else:
-                if (number_cooperative / len(neighbors)) * 100 > COOPERATION_THRESHOLD:
+                if (number_cooperative / len(neighbors)) > COOPERATION_THRESHOLD:
                     # Cooperation means catching as much as the growth of the patch:
                     self.catch = SUSTAINABLE_CATCH_MULTIPLIER * patch.growth_rate * patch.biomass * (1 - (patch.biomass / patch.capacity))
                 else:
