@@ -428,6 +428,7 @@ def visualize_simulation(steps = SIMULATION_STEPS, initial_counts = None):
         ax_biomass.set_title("Ø Biomass", fontsize=9)
         ax_biomass.set_ylabel("Biomass")
         ax_biomass.grid(True, linestyle=':', alpha=0.5)
+        ax_biomass.set_ylim(-2)
 
         ax_current.clear()
         for s in STRATEGIES:
