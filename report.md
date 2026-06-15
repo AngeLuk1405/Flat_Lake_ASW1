@@ -5,7 +5,9 @@
 
 
 ## 1. Introduction
-
+Das Problem der Fischerei und Allmende ist ein repräsentatives Beispiel der "Tragedy of the commons". Diese Theorie geht auf den britischen Wirtschaftsschriftsteller William Forster Lloyd zurück, der 1833 in seinen "Two lectures on the checks to population" postulierte, dass die Lebensmittelproduktion über kurz oder lang nicht mit der durch den stetigen Bevölkerungswachstum getriebene Nachfrage nach Lebensmittel nicht mehr mithalten können wird [Q1]. Der Mikrobiologe und Ökologe Garret James Hardin griff die Theorie von Lloyd wieder auf und erweiterte die Thematik zur Bevölkerungsentwicklung mit der Problematik der Ressourcen(über)nutzung und der damit verbundenen Umweltzerstörung. Hardin hielt in seinem Artikel "The Tragedy of the commons" fest, dass, sobald einer Gesellschaft der uneingeschränkt Zugang zu einer Ressource gewährleistet würde, dies unausweichlich zu einem Ruin der Gemeinschaft führe, da jeder einzelne versuchen würde, seinen eigenen Ertrag zu maximieren [Q2]. Howard Scott Gordon griff dieses Thema ebenso auf und verknüpfte es mit dem repräsentativen und auch hier behandeltenm, anschaulichem Beispiel der Fischerei, da Fische im Meer annähernd als Allgemeingut betrachtet werden können [Q3].
+Die US-amerikansiche Politikwissenschaftlerin Elinor Ostrom beleuchtet das Problem der Allmende jedoch unter einem anderen Blickwinkel und postuliert, dass Formen der Selbstorganisation und Kooperation der einzelnen Akteure einen Kollaps des Systems verhindern können. Instutitionelle Arrangements und Abkommen können dabei durch den Nutzen von lokalem Wissen eine potentielle Lösung des Allmendeproblems darstellen [Q4].
+Das vorliegende agentenbasierte Modell soll nun die beiden nun vorgelegten Theorien von Hardin beziehungsweise Ostrom auf ihre Validität untersuchen. Es wird also ein besonderes Augenmerk darauf gelegt, unter welchen gesellschaftlichen Bedingungen sich ein Gleichgewicht durch lokale Kooperation einstellt oder das System kollabiert. Weiters wird überprüft, wie groß der Einfluss eines institutionellen Mechanismus in Form einer Bestrafung bei egoistischem Handeln ist beziehungsweise, in welcher Form Änderungen in der Systemdynamik durch einen regulativen Eingriff zu beobachten sind.
 
 
 ## 2. Method
@@ -50,6 +52,11 @@ Der **Imitator** passt seine Strategie in jedem Schritt an den erfolgreichsten F
 
 
 ## References
+Q1: Vgl. William Forster Lloyd: Two lectures on the checks to population. University of Oxford. 1833. S.7ff.
+Q2: Vgl. Garret James Hardin: The tragedy of the commons. Erschienen in: Science, New Series, Vol. 162, No. 3859. Dezember 1968. S.1243-1248.
+Q3: Vgl. Howard Scott Gordon: The Economic Theory of a Common-Property Resource: The Fishery. Erschienen in: The Journal of Political Economy,   Vol. 62, No. 2. April 1954. S.124ff.
+Q4: Vgl. Elinor Ostrom: Govering the commons: The evolution of institutions for collective action. Cambridge University Press. 1990. S.14f.
+
 
 
 
