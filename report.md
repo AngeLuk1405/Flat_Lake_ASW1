@@ -1,11 +1,11 @@
 # Fischerei und Allmende: Eine agentenbasierte Simulation
 
 ## Abstract
-Das Allmendeproblem beschäftigt sich mit der Übernutzung gemeinsamer Ressourcen und wird häufig anhand der Fischerei ("Tragedy of the commonds") diskutiert. In diesem Beispiel könnte Übernutzung zu einem potenziellen Ressourcenkollaps führen. In diesem Rahmen stehen speziell zwei Thesen gegenüber: Garret James Hardins Aussage darüber, dass gemeinschaftlich genutze Ressourcen einen unvermeidlichen Kollaps zufolge haben und Elinor Ostroms Ansatz über selbstorganisierte Kooperation. Um diese und weitere Thesen näher zu untersuchen, wird in dieser Arbeit ein agentenbasiertes Modell eines befischten Sees entwickelt und analysiert. 
+Das Allmendeproblem beschäftigt sich mit der Übernutzung gemeinsamer Ressourcen und wird häufig anhand der Fischerei ("Tragedy of the commons") diskutiert. In diesem Beispiel könnte Übernutzung zu einem potenziellen Ressourcenkollaps führen. In diesem Rahmen stehen speziell zwei Thesen gegenüber: Garret James Hardins Aussage darüber, dass gemeinschaftlich genutze Ressourcen einen unvermeidlichen Kollaps zur Folge haben und Elinor Ostroms Ansatz über selbstorganisierte Kooperation. Um diese und weitere Thesen näher zu untersuchen, wird in dieser Arbeit ein agentenbasiertes Modell eines befischten Sees entwickelt und analysiert. 
 
 Ziel dieser Arbeit ist die Untersuchung der Bedingungen, unter welchen das entwickelte Ökosystem kollabiert und eine Analyse des Einflusses der Aufteilung verschiedener Akteursstrategien sowie institutioneller Mechanismen. Weiters soll ein Vergleich zwischen den theoretischen Perspektiven von Hardin und Ostrom gezogen werden und untersucht werden, ob nachhaltige Strategien unter Umständen zu einem höheren kumulativen Fang führen.
 
-Dazu wird eine agentenbasierte Simulation eines Fischerei-Ökosystems erstellt, wobei ein 2D-Gittermodell, bestehend aus 20x20 Patches, die Grundlage herstellt. Diesen Patches wird jeweils eine Biomasse zugeteilt, welche einem logistischen Wachstum unterliegt und zwischen den benachbarten Patches diffundieren kann. Auf den Patches können sich 20 Fischer-Akteure, handelnd nach vier verschiedenen Strategien, bewegen und den Patches Biomasse entnehmen. Alle  eben beschriebenen Mechanismen erfolgen diskret in einer festgelegten Reihenfolge. Für die Fischer-Agenten bestehen folgende Strategien:
+Dazu wird eine agentenbasierte Simulation eines Fischerei-Ökosystems erstellt, wobei ein 2D-Gittermodell, bestehend aus 20x20 Patches, die Grundlage herstellt. Diesen Patches wird jeweils eine Biomasse zugeteilt, welche einem logistischen Wachstum unterliegt und zwischen den benachbarten Patches diffundieren kann. Auf den Patches können sich 20 Fischer-Akteure, handelnd nach vier verschiedenen Strategien, bewegen und den Patches Biomasse entnehmen. Alle eben beschriebenen Mechanismen erfolgen diskret in einer festgelegten Reihenfolge. Für die Fischer-Agenten bestehen folgende Strategien:
 
 Egoisten: maximale Entnahme des jeweiligen Patches
 Imitatoren: Strategiewechsel basierend auf Erfolg der umliegenden Nachbarn
@@ -17,7 +17,7 @@ Um Aussagen über die Thesen von Hardin und Olstrom treffen zu können, werden v
 
 Zentrale Ergebnisse dieses agentenbasierten Modells ist der in Szenario 1 rasche und irreversible Kollaps der Biomasse bei rein egoistischer Nutzung, sowie dass sich das System alleine durch Kooperation nicht stabilisieren lässt. Hingegen stabilisiert eine institutionelle Sanktionierung das System nach anfänglicher Instabilität rasch. Weiters auffällig ist die Verstärkung egoistischem Verhalten durch Imitatoren. Erst eine Kombination aus Kooperatoren und Sanktionieren ermöglicht ein langfristiges Gleichgewicht, welches darüber hinaus einen höheren kumulativen Fang hervorbringt als rein egoistisches Handeln.
 
-Daraus lässt sich Hardins These unter rein egoistischen Bedingungen bestätigen. Olstroms Annahme lässt sich teilweise ebenfalls bestätigen, wobei Stabilität nur durch institutionelle Kontrolle entsteht. Allgemein resultiert Nachhaltigkeit aus einem Zusammenspiel von Verhalten, Interaktion und vor allem Institutionen, dessen Sanktionen einen zentralen stabilisierenden Mechanismus im Allmendeproblem darstellen.
+Daraus lässt sich Hardins These unter rein egoistischen Bedingungen bestätigen. Osstroms Annahme lässt sich teilweise ebenfalls bestätigen, wobei Stabilität nur durch institutionelle Kontrolle entsteht. Allgemein resultiert Nachhaltigkeit aus einem Zusammenspiel von Verhalten, Interaktion und vor allem Institutionen, dessen Sanktionen einen zentralen stabilisierenden Mechanismus im Allmendeproblem darstellen.
 
 
 ## 1. Introduction
@@ -116,9 +116,9 @@ Kipppunkte zeigen sich vor allem bei den Imitatoren, welche entweder die egoisti
 
 Eine starke negative Rückkopplung ist hingegen die Funktion des Sanktionierers. Dieser hat zufolge, dass Imitatoren sich unter Umständen dagegen entscheiden, ihren benachbarten Egoisten zu imitieren, wodurch es in Summe wie anhand von Szenario 5 und 6 ersichtlich, zu mehr nachhaltiger Fischerei kommt.
 
-Limitationen des Modells betreffen vor allem dieses Kipppunkt-Verhalten des Modells. In weiterer Bearbeitung des Projektes wäre es sinnvoll, sei es durch stärkers Bestrafen der Egoisten oder evtl. auch völliges Weglassen des Imitators.
+Limitationen des Modells betreffen vor allem dieses Kipppunkt-Verhalten des Modells. In weiterer Bearbeitung des Projektes wäre es sinnvoll, sei es durch stärkeres Bestrafen der Egoisten oder eventuell auch völliges Weglassen des Imitators.
 
-Weiters ist fraglich, ob das Modell bzgl. dem Erkennen, auf welchem Nachbarpatch sich eine hohe Biomasse befnidet, akkurrat die Realität abbildet.
+Weiters ist fraglich, ob das Modell bezüglich dem Erkennen, auf welchem Nachbarpatch sich eine hohe Biomasse befindet, akkurrat die Realität abbildet.
 
 
 ## References
