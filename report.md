@@ -1,7 +1,23 @@
 # Fischerei und Allmende: Eine agentenbasierte Simulation
 
 ## Abstract
+Das Allmendeproblem beschäftigt sich mit der Übernutzung gemeinsamer Ressourcen und wird häufig anhand der Fischerei ()"Tragedy of the commonds") diskutiert. In diesem Beispiel könnte Übernutzung zu einem potenziellen Ressourcenkollaps führen. In diesem Rahmen stehen speziell zwei Thesen gegenüber: Garret James Hardins Aussage darüber, dass gemeinschaftlich genutze Ressourcen einen unvermeidlichen Kollaps zufolge haben und Elinor Ostroms Ansatz über selbstorganisierte Kooperation. Um diese und weitere Thesen näher zu untersuchen, wird in dieser Arbeit ein agentenbasiertes Modell eines befischten Sees entwickelt und analysiert. 
 
+Ziel dieser Arbeit ist die Untersuchung der Bedingungen, unter welchen das entwickelte Ökosystem kollabiert und eine Analyse des Einflusses der Aufteilung verschiedener Akteursstrategien sowie institutioneller Mechanismen. Weiters soll ein Vergleich zwischen den theoretischen Perspektiven von Hardin und Ostrom gezogen werden und untersucht werden, ob nachhaltige Strategien unter Umständen zu einem höheren kumulativen Fang führen.
+
+Dazu wird eine agentenbasierte Simulation eines Fischerei-Ökosystems erstellt, wobei ein 2D-Gittermodell, bestehend aus 20x20 Patches, die Grundlage herstellt. Diesen Patches wird jeweils eine Biomasse zugeteilt, welche einem logistischen Wachstum unterliegt und zwischen den benachbarten Patches diffundieren kann. Auf den Patches können sich 20 Fischer-Akteure, handelnd nach vier verschiedenen Strategien, bewegen und den Patches Biomasse entnehmen. Alle  eben beschriebenen Mechanismen erfolgen diskret in einer festgelegten Reihenfolge. Für die Fischer-Agenten bestehen folgende Strategien:
+
+Egoisten: maximale Entnahme des jeweiligen Patches
+Imitatoren: Strategiewechsel basierend auf Erfolg der umliegenden Nachbarn
+Kooperatoren: nachhaltige Entnahme in Abhängigkeit der Regenerationsrate sowie in Abhängigkeit der Strategien der umliegenden Nachbarn
+Sanktionierer: nachhaltige Entnahme sowie Überwachung und Bestrafung der Nachbarn (stellen einen institutionellen Machanismus dar)
+Ebenfalls implementiert ist eine Umverteilung der erhaltenen Sanktionskosten auf alle nachhaltig fischenden Agenten.
+
+Um Aussagen über die Thesen von Hardin und Olstrom treffen zu können, werden verschiedene Szenarien erstellt, angefangen bei einem Szenario, welches Hardins Annahme repräsentiert, bishin zu Gleichgewichtssystemen.
+
+Zentrale Ergebnisse dieses agentenbasierten Modells ist der in Szenario 1 rasche und irreversible Kollaps der Biomasse bei rein egoistischer Nutzung, sowie dass sich das System alleine durch Kooperation nicht stabilisieren lässt. Hingegen stabilisiert eine institutionelle Sanktionierung das System nach anfänglicher Instabilität rasch. Weiters auffällig ist die Verstärkung egoistischem Verhalten durch Imitatoren. Erst eine Kombination aus Kooperatoren und Sanktionieren ermöglicht ein langfristiges Gleichgewicht, welches darüber hinaus einen höheren kumulativen Fang hervorbringt als rein egoistisches Handeln.
+
+Daraus lässt sich Hardins These unter rein egoistischen Bedingungen bestätigen. Olstroms Annahme lässt sich teilweise ebenfalls bestätigen, wobei Stabilität nur durch institutionelle Kontrolle entsteht. Allgemein resultiert Nachhaltigkeit aus einem Zusammenspiel von Verhalten, Interaktion und vor allem Institutionen, dessen Sanktionen einen zentralen stabilisierenden Mechanismus im Allmendeproblem darstellen.
 
 
 ## 1. Introduction
@@ -102,6 +118,7 @@ Wirft man nun einen Blick auf die relativen, kumulativen Erträge, verteilt nach
 <a id="q2"></a>Q2: Vgl. Garret James Hardin: The tragedy of the commons. Erschienen in: Science, New Series, Vol. 162, No. 3859. Dezember 1968. S.1243-1248. [PDF](references_report/The_tragedy_of_the_commons.pdf)\
 <a id="q3"></a>Q3: Vgl. Howard Scott Gordon: The Economic Theory of a Common-Property Resource: The Fishery. Erschienen in: The Journal of Political Economy,   Vol. 62, No. 2. April 1954. S.124ff. [PDF](references_report/The_economic_theory_of_a_common_property_resource.pdf)\
 <a id="q4"></a>Q4: Vgl. Elinor Ostrom: Governing the commons: The evolution of institutions for collective action. Cambridge University Press. 1990. S.14f. [PDF](references_report/Governing_the_commons.pdf)
+
 
 ## Appendix A: ODD
 # 1. Overview
