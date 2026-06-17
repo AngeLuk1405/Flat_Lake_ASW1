@@ -1,7 +1,7 @@
 # Fischerei und Allmende: Eine agentenbasierte Simulation
 
 ## Abstract
-Das Allmendeproblem beschäftigt sich mit der Übernutzung gemeinsamer Ressourcen und wird häufig anhand der Fischerei ()"Tragedy of the commonds") diskutiert. In diesem Beispiel könnte Übernutzung zu einem potenziellen Ressourcenkollaps führen. In diesem Rahmen stehen speziell zwei Thesen gegenüber: Garret James Hardins Aussage darüber, dass gemeinschaftlich genutze Ressourcen einen unvermeidlichen Kollaps zufolge haben und Elinor Ostroms Ansatz über selbstorganisierte Kooperation. Um diese und weitere Thesen näher zu untersuchen, wird in dieser Arbeit ein agentenbasiertes Modell eines befischten Sees entwickelt und analysiert. 
+Das Allmendeproblem beschäftigt sich mit der Übernutzung gemeinsamer Ressourcen und wird häufig anhand der Fischerei ("Tragedy of the commonds") diskutiert. In diesem Beispiel könnte Übernutzung zu einem potenziellen Ressourcenkollaps führen. In diesem Rahmen stehen speziell zwei Thesen gegenüber: Garret James Hardins Aussage darüber, dass gemeinschaftlich genutze Ressourcen einen unvermeidlichen Kollaps zufolge haben und Elinor Ostroms Ansatz über selbstorganisierte Kooperation. Um diese und weitere Thesen näher zu untersuchen, wird in dieser Arbeit ein agentenbasiertes Modell eines befischten Sees entwickelt und analysiert. 
 
 Ziel dieser Arbeit ist die Untersuchung der Bedingungen, unter welchen das entwickelte Ökosystem kollabiert und eine Analyse des Einflusses der Aufteilung verschiedener Akteursstrategien sowie institutioneller Mechanismen. Weiters soll ein Vergleich zwischen den theoretischen Perspektiven von Hardin und Ostrom gezogen werden und untersucht werden, ob nachhaltige Strategien unter Umständen zu einem höheren kumulativen Fang führen.
 
@@ -61,7 +61,7 @@ Zur Gegenüberstellung und Überprüfung der innerhalb der Introduction vorgeste
 
 
 ## 3. Results
-Szenario 1 zeigt anhand der exponentiell abfallenden Biomasse deutlich, dass Hardins Theorie des Systemkollapses bei einer frei verfügbaren Ressource unter der Annahme eines egoistischen Eigenverhaltens der Akteure durchaus zutrifft. Nach etwa 150 simulierten Zeitsteps ist die Biomasse im gesamten See nahezu ausgerottet. Aufgrund der egoistischen Fangstrategie kann sich diese auch im weiteren Simulationsverlauf nicht mehr erholen. Es ergibt sich also ein irreversibler Systemkollaps.
+In Szenario 1 fällt Biomasse exponentiell ab und ist nach etwa 150 simulierten Zeitsteps im gesamten See nahezu ausgerottet. Aufgrund der egoistischen Fangstrategie kann sich diese auch im weiteren Simulationsverlauf nicht mehr erholen. Es ergibt sich also ein irreversibler Systemkollaps.
 Bezieht man nun die Kooperatoren mit ein (Szenario 2), so ist der Biomassenverlauf zwar nicht mehr exponentiell abnehmend, aber dennoch nähert sie sich etwas zeitverzögert dem Nullpunkt an. Man kann also auch in diesem Fall von einem Systemkollaps sprechen. 
 
 <table border="0" cellspacing="0" cellpadding="5" width="100%">
@@ -77,7 +77,7 @@ Bezieht man nun die Kooperatoren mit ein (Szenario 2), so ist der Biomassenverla
   </tr>
 </table>
 
-Erst unter Einbezug der Sanktionierer (Szenario 3) als institutionelle Kontrollmaßnahme schafft es das System, sich nach einer anfänglichen Einschwingungsphase zu stabilisieren. Das Szenario 4 mit den Imitatoren ähnelt dem Szenario 3 sehr, da die neu hinzugefügten Imitatoren zumeist als Egoist agieren. Das fünfte Szenario zeigt einen Gleichgewichtszustand, der nur durch lokale Überfischung oder lokales Nachwachsen leicht oszilliert. Das Szenario 6, das die soziale Umverteilung inkludiert, zeigt ein annähernd ähnliches Ergebnis in der Biomasse. Von der Umverteilung profitieren vor allem die Sanktionierer, da sie einen Anteil der eingezogenen Sanktionskosten behalten. Beim Fang der Kooperatoren ist hingegen trotz der Rückverteilung auf nachhaltige Fischer kein wesentlicher Vorteil gegenüber Szenario 5 ohne Umverteilung zu erkennen.
+In Szenario 3 stabilisiert sich das System nach einer anfänglichen Einschwingungsphase. Zwischen Szenario 4 und Szenario 3 sind keine relevanten Unterschieded festzustellen, wie in der Diskussion näher ausgeführt. Das fünfte Szenario zeigt einen Gleichgewichtszustand, der nur durch lokale Überfischung oder starkes Wachstum aufgrund einer lokal geringen Fischer-Dichte leicht oszilliert. Szenario 6, das die soziale Umverteilung inkludiert, zeigt ein annähernd ähnliches Ergebnis in der Biomasse. Von der Umverteilung profitieren vor allem die Sanktionierer, da sie einen Anteil der eingezogenen Sanktionskosten behalten. Beim Fang der Kooperatoren ist hingegen trotz der Rückverteilung auf nachhaltige Fischer kein wesentlicher Vorteil gegenüber Szenario 5 ohne Umverteilung zu erkennen.
 
 <table border="0" cellspacing="0" cellpadding="5">
   <tr>
@@ -106,11 +106,19 @@ Erst unter Einbezug der Sanktionierer (Szenario 3) als institutionelle Kontrollm
   </tr>
 </table>
 
-Wirft man nun einen Blick auf die relativen, kumulativen Erträge, verteilt nach Fangstrategien, so ist aber dennoch deutlich, dass die Egoisten am profitablesten agieren. Konkurriert werden sie nur von den Imitatoren, die jedoch auch zumeist nach der egoistischen Fangstrategie fischen. Die Kooperatoren und die Sanktionierer steigen bei dieser ökonomischen Betrachtungsweise tendenziell schlechter aus, sorgen aber dafür, dass das System nicht kollabiert.
-
 
 ## 4. Discussion, Conclusion and Limitations
+Szenario 1 zeigt anhand der exponentiell abfallenden Biomasse deutlich, dass Hardins Theorie des Systemkollapses bei einer frei verfügbaren Ressource unter der Annahme eines egoistischen Eigenverhaltens der Akteure durchaus zutrifft. Ein Einbezug von Kooperatoren sorgt lediglich für ein zeitlich verzögertes Aussterben der Biomasse - logisch nachvollziehbar, nachdem Kooperatoren ebenfalls egoistisch handeln, sofern sich zu viele Egoisten in ihrer Sichtweite befinden. Die bereits zuvor beschriebene eintretende Stabilisation des Systems in Szenario 3 wird durch die Einführung des Sanktionierers als institutionelle Kontrollmaßnahme möglich. Die zuvor beschriebene Ähnlichkeit zwischen Szenario 4 und 3 basiert darauf, dass die hinzugefügten Imitatoren (vor allem bei einer verhältnismäßig hohen Anzahl an Egoisten) mit einer hohen Wahrscheinlichkeit einen Egoisten in Sichtweite haben, dieser einen hohen Fang hat, und dementsprechend ebenfalls egoistisch agieren. Das Szenario 5 und 6 zeigen schließlich eine stabile Biomasse bei ca. 40% Bestand. Dies bestätigt teilweise die These von Olstrom der Stabilität durch Kooperation, wenn auch im Fall dieses Modells vor allem erst durch institutionelle Kontrolle.
 
+Wirft man einen Blick auf die relativen, kumulativen Erträge, verteilt nach Fangstrategien, so wird deutlich, dass die Egoisten am profitablesten agieren. Konkurriert werden sie nur von den Imitatoren, die jedoch auch zumeist nach der egoistischen Fangstrategie fischen. Die Kooperatoren und die Sanktionierer steigen bei dieser ökonomischen Betrachtungsweise tendenziell schlechter aus, sorgen aber dafür, dass das System nicht kollabiert. Interessant ist weiters dass die kumulativen Erträge in Summe in Szenario 5 und 6 am größten ausfallen - bei gleichzeitiger Stabilität der Biomasse. 
+
+Kipppunkte zeigen sich vor allem bei den Imitatoren, welche entweder die egoistische Strategie übernehmen oder im Falle von keinen Egoisten im Sichtradius auch Kooperator oder Sanktionierer werden können. Hierbei kann an in weiterer Folge zu einer positiven Rückkopplung kommen, indem beispielsweise immer mehr Imitatoren egoistisch werden.
+
+Eine starke negative Rückkopplung ist hingegen die Funktion des Sanktionierers. Dieser hat zufolge, dass Imitatoren sich unter Umständen dagegen entscheiden, ihren benachbarten Egoisten zu imitieren, wodurch es in Summe wie anhand von Szenario 5 und 6 ersichtlich, zu mehr nachhaltiger Fischerei kommt.
+
+Limitationen des Modells betreffen vor allem dieses Kipppunkt-Verhalten des Modells. In weiterer Bearbeitung des Projektes wäre es sinnvoll, sei es durch stärkers Bestrafen der Egoisten oder evtl. auch völliges Weglassen des Imitators.
+
+Weiters ist fraglich, ob das Modell bzgl. dem Erkennen, auf welchem Nachbarpatch sich eine hohe Biomasse befnidet, akkurrat die Realität abbildet.
 
 
 ## References
