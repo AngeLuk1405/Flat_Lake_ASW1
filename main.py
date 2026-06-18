@@ -213,6 +213,9 @@ def is_cooperative(fisher):
     
 # Helper function to apply sanctions by sanctioners to egoists in their sight radius:
 def apply_sanctions(fishers):
+    """Applies sanctions to fishers that exceed the sustainable catch threshold. 
+    If DISTRIBUTION_SWEEP is enabled, the confiscated catch is distributed to sustainable fishers, 
+    with the sanctioner keeping a share."""
     sustainable_catch = GROWTH_RATE * CAPACITY * 0.5
     total_subsidy_pool = 0.0
 
@@ -351,12 +354,15 @@ def visualize_simulation(steps = SIMULATION_STEPS, initial_counts = None):
 
     # Event handler for key presses to toggle pause when spacebar is pressed:
     def on_press(event):
+        """Toggles the simulation pause state when the spacebar is pressed."""
         if event.key == ' ':
             is_paused[0] = not is_paused[0]
             fig.canvas.draw()
 
     # Update function to advance the simulation and update the visualization at each step:
     def update(*args, **kwargs):
+        """Advances the simulation by one step, updates all plots and redraws the canvas.
+        Stops the timer when the maximum number of steps is reached."""
         nonlocal cbar
         if current_step[0] >= steps:
             timer.stop()
@@ -470,6 +476,8 @@ def visualize_simulation(steps = SIMULATION_STEPS, initial_counts = None):
     plt.show()
 
 def main():
+    """Entry point of the simulation. Parses command line arguments for initial
+    strategy counts and distribution sweep option, then starts the live visualization."""
     random.seed(42) 
     # Set up command line arguments to allow users to specify initial conditions and activate distribution sweep for sanctions:
     global DISTRIBUTION_SWEEP

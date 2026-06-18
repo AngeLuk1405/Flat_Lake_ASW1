@@ -13,7 +13,7 @@ Dazu wird eine agentenbasierte Simulation eines Fischerei-Ökosystems erstellt, 
 - Sanktionierer: nachhaltige Entnahme sowie Überwachung und Bestrafung der Nachbarn (stellen einen institutionellen Mechanismus dar)
 Ebenfalls implementiert ist eine Umverteilung der erhaltenen Sanktionskosten auf alle nachhaltig fischenden Agenten.
 
-Um Aussagen über die Thesen von Hardin und Ostrom treffen zu können, werden verschiedene Szenarien erstellt, angefangen bei einem Szenario, welches Hardins Annahme repräsentiert, bishin zu Gleichgewichtssystemen.
+Um Aussagen über die Thesen von Hardin und Ostrom treffen zu können, werden verschiedene Szenarien erstellt, angefangen bei einem Szenario, welches Hardins Annahme repräsentiert, bis hin zu Gleichgewichtssystemen.
 
 Zentrale Ergebnisse dieses agentenbasierten Modells ist der in Szenario 1 rasche und irreversible Kollaps der Biomasse bei rein egoistischer Nutzung, sowie dass sich das System alleine durch Kooperation nicht stabilisieren lässt. Hingegen stabilisiert eine institutionelle Sanktionierung das System nach anfänglicher Instabilität rasch. Weiters auffällig ist die Verstärkung egoistischem Verhalten durch Imitatoren. Erst eine Kombination aus Kooperatoren und Sanktionieren ermöglicht ein langfristiges Gleichgewicht, welches darüber hinaus einen höheren kumulativen Fang hervorbringt als rein egoistisches Handeln.
 
@@ -55,10 +55,78 @@ Der **Sanktionierer** fängt in jedem Schritt nachhaltig. Nachdem alle Fischer g
 Der **Imitator** passt seine Strategie in jedem Schritt an den erfolgreichsten Fischer im Sichtradius an, wenn dieser erfolgreicher ist als der Imitator. Der erfolgreichste Fischer ist derjenige mit dem höchsten kumulativen Fang. Dabei ändern Imitatoren nur ihre aktuelle Strategie `current_strategy`, nicht ihre ursprüngliche Strategie `strategy`. Beim Initialisieren der Fischer wird die aktuelle Strategie der Imitatoren zufällig gewählt, die aktuelle Strategie der Kooperatoren, Sanktionierer und Egoisten entspricht immer ihrer ursprünglichen Strategie. Dadurch können Imitatoren immer als solche identifiziert werden und gleichzeitig dynamisch ihre Strategie anpassen.
 
 ### 2.3 Sanktionsmechanismus
-Innerhalb des Sanktionsmechanismus wird in einem ersten Schritt der Umkreis des Sanktionierers nach anderen Fischern gescannt. Danach werden die gefundenen Fischer auf ihre Nachhaltigkeit anhand ihres Fischfanges überprüft. Fischen sie nicht nachhaltig, sondern verhalten sie sich egoistisch, so wird ihr Fang um die festgelegte `SANCTION_COST` vermindert. Der nachhaltige Fang ist hier nicht identisch mit dem nachhaltigen Fang der Kooperatoren und Sanktionierer. Während letzterer dynamisch über die aktuelle Biomasse und das logistische Wachstum des Patches berechnet wird, ist der nachhaltige Referenzfang für die Sanktionierung als fixer globaler Wert über Wachstumsrate und Kapazität definiert: `GROWTH_RATE * CAPACITY * 0.5`. Das liefert einen einheitlichen Referenzwert für alle Fischer unabhängig vom aktuellen Zustand der Patches. Ist zusätzlich der `DISTRIBUTION_SWEEP` aktiviert, so behält sich der Sanktionierer einen über die Variable `SANCTIONER_KEEP_RATIO` definierten Anteil der eingezogenen Sanktionskosten nicht nachhaltiger Fischer, während der Rest der eingezogenen Biomasse auf alle nachhaltig fischenden Akteure aufgeteilt wird. Andernfalls werden die Sanktionskosten nicht aufgeteilt, sondern schlichtweg nicht mehr beachtet.
+Innerhalb des Sanktionsmechanismus wird in einem ersten Schritt der Umkreis des Sanktionierers nach anderen Fischern gescannt. Danach werden die gefundenen Fischer auf ihre Nachhaltigkeit anhand ihres Fischfanges überprüft. Fischen sie nicht nachhaltig, sondern verhalten sie sich egoistisch, so wird ihr Fang um die festgelegte `SANCTION_COST` vermindert. Der nachhaltige Fang ist hier nicht identisch mit dem nachhaltigen Fang der Kooperatoren und Sanktionierer. Während letzterer dynamisch über die aktuelle Biomasse und das logistische Wachstum des Patches berechnet wird, ist der nachhaltige Referenzfang für die Sanktionierung als fixer globaler Wert über Wachstumsrate und Kapazität definiert: `GROWTH_RATE * CAPACITY * 0.5`. Das liefert einen einheitlichen Referenzwert für alle Fischer unabhängig vom aktuellen Zustand der Patches. Ist zusätzlich der `DISTRIBUTION_SWEEP` aktiviert, so behält sich der Sanktionierer einen über die Variable `SANCTIONER_KEEP_RATIO` definierten Anteil der eingezogenen Sanktionskosten nicht nachhaltiger Fischer, während der Rest der eingezogenen Biomasse auf alle nachhaltig fischenden Akteure aufgeteilt wird. Andernfalls werden die Sanktionskosten nicht aufgeteilt, sondern schlichtweg nicht mehr beachtet. Der folgende Code-Ausschnitt zeigt die Funktion `apply_sanctions()`, die den Sanktionsmechanismus implementiert:
+
+```python
+# Helper function to apply sanctions by sanctioners to egoists in their sight radius:
+def apply_sanctions(fishers):
+  """Applies sanctions to fishers that exceed the sustainable catch threshold. If DISTRIBUTION_SWEEP is enabled, the confiscated catch is distributed to sustainable fishers, with the sanctioner keeping a share."""
+    sustainable_catch = GROWTH_RATE * CAPACITY * 0.5
+    total_subsidy_pool = 0.0
+
+    for sanctioner in fishers:
+        if sanctioner.strategy != "sanctioner":
+            continue
+
+        # Check for neighbors to sanction:
+        neighbors = get_neighbors(sanctioner, fishers)
+        for neighbor in neighbors:
+            if neighbor.catch > SANCTION_THRESHOLD * sustainable_catch:
+                confiscated_fish = min(SANCTION_COST, neighbor.catch) 
+                neighbor.catch -= confiscated_fish
+
+                # Distribution Sweep: Sanction cost is distributed to sustainable fishers
+                if DISTRIBUTION_SWEEP:
+                    keep_amount = confiscated_fish * SANCTIONER_KEEP_RATIO
+                    subsidy_amount = confiscated_fish * (1 - SANCTIONER_KEEP_RATIO)
+                    sanctioner.total_catch += keep_amount
+                    total_subsidy_pool += subsidy_amount
+
+    if DISTRIBUTION_SWEEP and total_subsidy_pool > 0:
+        sustainable_fishers = [f for f in fishers if f.catch <= SANCTION_THRESHOLD * sustainable_catch]
+        if len(sustainable_fishers) > 0:
+            share_per_fisher = total_subsidy_pool / len(sustainable_fishers)
+            for f in sustainable_fishers:
+                f.catch += share_per_fisher 
+```
 
 ### 2.4 Ablauf
-In jedem Simulationsschritt wird zunächst die Biomasse aller Patches durch Diffusion und logistisches Wachstum aktualisiert. Anschließend fängt jeder Fischer entsprechend seiner Strategie Biomasse von seinem aktuellen Patch. Nachdem alle Fischer gefangen haben, führen die Sanktionierer ihre Sanktionen durch und verteilen den konfiszierten Fang, falls `DISTRIBUTION_SWEEP` aktiviert ist, auf nachhaltige Fischer. Der aktuelle Fang jedes Fischers wird zum kumulativen Fang addiert. Abschließend bewegen sich die Fischer auf einen Patch in der Moore-Nachbarschaft, mit einer Wahrscheinlichkeit von 80 % auf den Patch mit der höchsten Biomasse und mit einer Wahrscheinlichkeit von 20 % auf einen zufälligen benachbarten Patch. Sind alle Nachbarpatches besetzt, so bleibt der Fischer auf seinem aktuellen Patch.
+In jedem Simulationsschritt wird zunächst die Biomasse aller Patches durch Diffusion und logistisches Wachstum aktualisiert. Anschließend fängt jeder Fischer entsprechend seiner Strategie Biomasse von seinem aktuellen Patch. Nachdem alle Fischer gefangen haben, führen die Sanktionierer ihre Sanktionen durch und verteilen den konfiszierten Fang, falls `DISTRIBUTION_SWEEP` aktiviert ist, auf nachhaltige Fischer. Der aktuelle Fang jedes Fischers wird zum kumulativen Fang addiert. Abschließend bewegen sich die Fischer auf einen Patch in der Moore-Nachbarschaft, mit einer Wahrscheinlichkeit von 80 % auf den Patch mit der höchsten Biomasse und mit einer Wahrscheinlichkeit von 20 % auf einen zufälligen benachbarten Patch. Sind alle Nachbarpatches besetzt, so bleibt der Fischer auf seinem aktuellen Patch. Der folgende Code-Ausschnitt zeigt die `step()`-Funktion, die den Ablauf im Code regelt:
+
+```python
+# Step function simulates one time step of the model. Biomass grows, fishers catch fish.
+def step(grid, fishers):
+    """Advances the simulation by one step, updating biomass, fishing, sanctions
+    and strategies."""
+
+# At first, biomass grows in each patch and diffuses to neighboring patches:
+    diffuse_biomass(grid)
+    # Update the biomass of each patch:
+    for row in grid:
+        for patch in row:
+            patch.grow()
+    
+    # Each fisher catches fish from current patch:
+    for fisher in fishers:
+        patch = grid[fisher.y_position][fisher.x_position]
+        neighbors = get_neighbors(fisher, fishers)
+        fisher.catch_fish(patch, neighbors)
+        
+        fisher.catch = min(fisher.catch, patch.biomass) # Catch cannot be more than the available biomass
+        patch.biomass -= fisher.catch
+        patch.biomass = max(0.0, patch.biomass) # Biomass cannot be negative
+       
+    # After all fishers have caught fish, sanctioners apply sanctions to egoists in their sight radius:
+    apply_sanctions(fishers)
+
+    # After sanctions, we update the total catch of each fisher by adding the catch of this step to their total catch:
+    for fisher in fishers:
+        fisher.total_catch += fisher.catch
+        
+    # After all fishers have caught fish, they move to a new patch:
+    for fisher in fishers:
+        fisher.move(fishers, grid)
+```
 
 ### 2.5 Szenarien 
 Zur Gegenüberstellung und Überprüfung der innerhalb der Introduction vorgestellten Theorien von Hardin beziehungsweise Ostrom wurden mehrere Szenarien mit verschiedenen Konstellationen der verschiedenen Fischerstrategien über das command-line-interface (CLI) durchgeführt. In Szenario 1 wurden auf den See 20 Egoisten gesetzt, um Hardins Theorie zum Systemkollaps bei freier Ressourcenzugänglichkeit zu überprüfen. In einem zweiten Szenario wurde Ostroms Theorie der lokalen Kooperation eingebaut, indem 10 Egoisten und 10 Kooperatoren auf dem See platziert wurden. In einem weiteren Szenario 3 wurde die Erweiterung der Ostrom'schen Theorie durch institutionelle Kontrollmechanismen in Form der Sanktionierer eingebaut. Die Rollenverteilung ist dabei 10 Egoisten, 5 Kooperatoren und 5 Sanktionierer. Im Szenario 4 wurde getestet, ob das Hinzufügen von 5 Imitatoren, die in der realen Gesellschaft mit den klassischen Mitläufern vergleichbar sind, anstatt von 5 der 10 Egoisten das Endergebnis der Biomassenentwicklung beeinflusst. Zudem wurde im Szenario 5 auch noch eine andere mögliche Strategieverteilung (4 Egoisten, 4 Imitatoren, 6 Kooperatoren, 6 Sanktionierer) implementiert. Im letzten, 6. Szenario wurde zusätzlich zur Rollenverteilung des Szenario 5 die Wirkung der Umverteilung (Distribution-Sweep) miteingebaut. 
@@ -114,7 +182,7 @@ In Szenario 3 stabilisiert sich das System nach einer anfänglichen Einschwingun
 ## 4. Discussion, Conclusion and Limitations
 Szenario 1 zeigt anhand der exponentiell abfallenden Biomasse deutlich, dass Hardins Theorie des Systemkollapses bei einer frei verfügbaren Ressource unter der Annahme eines egoistischen Eigenverhaltens der Akteure durchaus zutrifft. Ein Einbezug von Kooperatoren sorgt lediglich für ein zeitlich verzögertes Aussterben der Biomasse - logisch nachvollziehbar, nachdem Kooperatoren ebenfalls egoistisch handeln, sofern sich zu viele Egoisten in ihrer Sichtweite befinden. Die bereits zuvor beschriebene eintretende Stabilisierung des Systems in Szenario 3 wird durch die Einführung des Sanktionierers als institutionelle Kontrollmaßnahme möglich. Die zuvor beschriebene Ähnlichkeit zwischen Szenario 4 und 3 basiert darauf, dass die hinzugefügten Imitatoren (vor allem bei einer verhältnismäßig hohen Anzahl an Egoisten) mit einer hohen Wahrscheinlichkeit einen Egoisten in Sichtweite haben, dieser einen hohen Fang hat, und dementsprechend ebenfalls egoistisch agieren. Das Szenario 5 und 6 zeigen schließlich eine stabile Biomasse bei ca. 40% Bestand. Dies bestätigt teilweise die These von Ostrom der Stabilität durch Kooperation, wenn auch im Fall dieses Modells vor allem erst durch institutionelle Kontrolle.
 
-Wirft man einen Blick auf die relativen, kumulativen Erträge, verteilt nach Fangstrategien, so wird deutlich, dass die Egoisten am profitablesten agieren. Konkurriert werden sie nur von den Imitatoren, die jedoch auch zumeist nach der egoistischen Fangstrategie fischen. Die Kooperatoren und die Sanktionierer steigen bei dieser ökonomischen Betrachtungsweise tendenziell schlechter aus, sorgen aber dafür, dass das System nicht kollabiert. Interessant ist weiters dass die kumulativen Erträge in Summe in Szenario 5 und 6 am größten ausfallen - bei gleichzeitiger Stabilität der Biomasse. 
+Wirft man einen Blick auf die relativen, kumulativen Erträge, verteilt nach Fangstrategien, so wird deutlich, dass die Egoisten am profitabelsten agieren. Konkurriert werden sie nur von den Imitatoren, die jedoch auch zumeist nach der egoistischen Fangstrategie fischen. Die Kooperatoren und die Sanktionierer steigen bei dieser ökonomischen Betrachtungsweise tendenziell schlechter aus, sorgen aber dafür, dass das System nicht kollabiert. Interessant ist weiters, dass die kumulativen Erträge in Summe in Szenario 5 und 6 am größten ausfallen - bei gleichzeitiger Stabilität der Biomasse. 
 
 Kipppunkte zeigen sich vor allem bei den Imitatoren, welche entweder die egoistische Strategie übernehmen oder im Falle von keinen Egoisten im Sichtradius auch Kooperator oder Sanktionierer werden können. Hierbei kann es in weiterer Folge zu einer positiven Rückkopplung kommen, indem beispielsweise immer mehr Imitatoren egoistisch werden.
 
